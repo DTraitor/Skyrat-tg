@@ -199,6 +199,9 @@ Temporary Items
 /tools/LinuxOneShot/TGS_Instances
 /tools/LinuxOneShot/TGS_Logs
 
+# Autowiki
+/tools/autowiki/node_modules
+
 # TGUI bundles - SKYRAT EDIT
 /tgui/public/tgui-common.bundle.js
 modular_skyrat/modules/paperwork/code/adminpaper.dm

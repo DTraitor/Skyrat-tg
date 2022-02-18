@@ -392,20 +392,16 @@
 /obj/item/clothing/mask/kindle
 	name = "mask of Kindle"
 	desc = "The mask which belongs to Nanotrasen's Outpost Captain Kindle, it is the symbol of her 'Kindled' cult. The material feels like it's made entirely out of inexpensive plastic."
-	actions_types = list(/datum/action/item_action/adjust)
 	icon = 'modular_skyrat/master_files/icons/donator/obj/clothing/masks.dmi'
 	icon_state = "kindle"
 	worn_icon = 'modular_skyrat/master_files/icons/donator/mob/clothing/mask.dmi'
 	inhand_icon_state = "kindle"
 	mutant_variants = NONE
-	flags_inv = HIDEFACIALHAIR | HIDEFACE | HIDESNOUT
-	flags_cover = MASKCOVERSMOUTH | MASKCOVERSEYES
-	visor_flags_inv = HIDEFACIALHAIR | HIDEFACE | HIDESNOUT
-	visor_flags_cover = MASKCOVERSMOUTH | MASKCOVERSEYES
+	clothing_flags = MASKINTERNALS
+	flags_inv = HIDEFACIALHAIR | HIDESNOUT
+	visor_flags_inv = HIDEFACIALHAIR | HIDESNOUT
+	alternate_worn_layer = ABOVE_BODY_FRONT_HEAD_LAYER
 	w_class = WEIGHT_CLASS_SMALL
-
-/obj/item/clothing/mask/kindle/ui_action_click(mob/user, action)
-	adjustmask(user)
 
 /obj/item/clothing/mask/kindle/Initialize()
 	. = ..()
@@ -423,8 +419,8 @@
 		var/mob/living/crusher = movable
 		if(crusher.m_intent != MOVE_INTENT_WALK && (!(crusher.movement_type & (FLYING|FLOATING)) || crusher.buckled))
 			playsound(src, 'modular_skyrat/master_files/sound/effects/plastic_crush.ogg', 75)
-			visible_message(span_warning("[crusher] steps on the [src], crushing it with ease."))
-			take_damage(200, sound_effect = FALSE)
+			visible_message(span_warning("[crusher] steps on [src], crushing it with ease."))
+			take_damage(100, sound_effect = FALSE)
 
 /obj/item/clothing/mask/kindle/atom_destruction(damage_flag)
 	. = ..()
@@ -586,13 +582,28 @@
 	body_parts_covered = CHEST|GROIN|LEGS|ARMS
 
 //Donation reward for inferno707
-/obj/item/clothing/neck/human_petcollar/inferno
+/obj/item/clothing/neck/inferno_collar
 	name = "Kiara's collar"
 	desc = "A soft black collar that seems to stretch to fit whoever wears it."
-	icon = 'modular_skyrat/master_files/icons/donator/obj/custom.dmi'
 	icon_state = "infcollar"
+	icon = 'modular_skyrat/master_files/icons/donator/obj/custom.dmi'
 	worn_icon = 'modular_skyrat/master_files/icons/donator/mob/clothing/custom_w.dmi'
-	tagname = null
+	alternate_worn_layer = UNDER_SUIT_LAYER
+	pocket_storage_component_path = /datum/component/storage/concrete/pockets/small/collar
+	/// What's the name on the tag, if any?
+	var/tagname = null
+	/// What treat item spawns inside the collar?
+	var/treat_path = /obj/item/food/cookie
+
+/obj/item/clothing/neck/inferno_collar/Initialize()
+	. = ..()
+	if(treat_path)
+		new treat_path(src)
+
+/obj/item/clothing/neck/inferno_collar/attack_self(mob/user)
+	tagname = stripped_input(user, "Would you like to change the name on the tag?", "Name your new pet", "Kiara", MAX_NAME_LEN)
+	if(tagname)
+		name = "[initial(name)] - [tagname]"
 
 //Donation reward for inferno707
 /obj/item/clothing/accessory/medal/steele
