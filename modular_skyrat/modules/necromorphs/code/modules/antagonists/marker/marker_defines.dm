@@ -30,6 +30,12 @@
 
 
 // Structure properties
+/*
+	Marker structures need to be moved out of this. Structures are alot more advance
+	then blob structures. This file should be moved into a simple Necromorph_Define masters file
+	for any defines that need to be global. Otherwise, this file should focus on only
+	settings that affect the "MASTER / SIGNALS"
+*/
 
 #define MARKER_CORE_MAX_HP                            400
 #define MARKER_CORE_HP_REGEN                          2           // Bases health regeneration rate every process(), can be added on by strains
@@ -48,7 +54,7 @@
 #define MARKER_NODE_EXPAND_RANGE                      2           // Radius of automatic expansion
 #define MARKER_NODE_STRONG_REINFORCE_RANGE            0           // The radius of tiles surrounding the node that get upgraded
 #define MARKER_NODE_REFLECTOR_REINFORCE_RANGE         0
-#define MARKER_NODE_MAX_SLASHERS                        1           // Slashers that nodes can maintain
+#define MARKER_NODE_MAX_SLASHERS                       1           // Slashers that nodes can maintain
 
 #define MARKER_FACTORY_MAX_HP                         200
 #define MARKER_FACTORY_HP_REGEN                       1
@@ -72,7 +78,16 @@
 #define MARKER_REFLECTOR_HP_REGEN                     2
 
 
-// Structure purchasing
+// Structure purchasing -
+/*
+	Needs to be replaced with BIOMASS: BIOMASS is the universal resource
+	for all Necromorph and Marker Actions. I would like all biomass functions to be stored
+	in the biomass.dm file. As Biomass will be global between all necromorphs and not
+	just the marker system.
+
+	All structures are going to be slowly converted off of being a sub-class of "MARKER"
+	and made into a sub-class of "GROWTH"
+*/
 
 #define MARKER_UPGRADE_STRONG_COST                    10          // Upgrade and build costs here
 #define MARKER_UPGRADE_REFLECTOR_COST                 5
@@ -98,8 +113,8 @@
 #define MARKER_POWER_REROLL_CHOICES                   6           // Possibilities to choose from; keep in mind increasing this might fuck with the radial menu
 
 
-// Mob defines
-
+// Mob defines - Mobs should not have any definition here. All mobs should be handled in their respected locations. Most mobs are carbons anyways.
+/*
 #define MARKERMOB_HEALING_MULTIPLIER                  0.0125      // Multiplies by -maxHealth and heals the marker by this amount every marker_act
 #define MARKERMOB_SLASHER_HEALTH                        30          // Base slasher health
 #define MARKERMOB_SLASHER_SPAWN_COOLDOWN                8 SECONDS
@@ -116,7 +131,7 @@
 #define MARKERMOB_BRUTE_HEALING_CORE            0.05        // Percentage multiplier HP restored on Life() when within 2 tiles of the marker core
 #define MARKERMOB_BRUTE_HEALING_NODE            0.025       // Same, but for a nearby node
 #define MARKERMOB_BRUTE_HEALTH_DECAY            0.0125      // Percentage multiplier HP lost when not near marker tiles or without factory
-
+*/
 /// Forces the blob to place the core where they currently are, ignoring any checks.
 #define MARKER_FORCE_PLACEMENT -1
 /// Normal blob placement, does the regular checks to make sure the blob isn't placing itself in an invalid location
