@@ -1,3 +1,7 @@
+/*
+	DEPRECATED: ALL FUTURE POWERS NEED TO BE MOVED TO SEPERATE ABILITIES
+*/
+
 #define MARKER_REROLL_RADIUS 60
 
 /mob/camera/marker/proc/can_buy(cost = 15)
@@ -33,8 +37,8 @@
 			to_chat(src, span_warning("You cannot place your core here!"))
 			return FALSE
 		for(var/obj/O in T)
-			if(istype(O, /obj/structure/marker))
-				if(istype(O, /obj/structure/marker/normal))
+			if(istype(O, /obj/structure/necromorph/growth))
+				if(istype(O, /obj/structure/necromorph/growth/normal))
 					qdel(O)
 				else
 					to_chat(src, span_warning("There is already a marker here!"))
@@ -51,8 +55,8 @@
 	if(placed && marker_core)
 		marker_core.forceMove(loc)
 	else
-		var/obj/structure/marker/special/core/core = new(get_turf(src), src, 1)
-		core.overmind = src
+		var/obj/structure/necromorph/growth/special/core/core = new(get_turf(src), src, 1)
+		core.master = src
 		markers_legit += src
 		marker_core = core
 		core.update_appearance()
@@ -60,29 +64,32 @@
 	announcement_time = world.time + OVERMIND_ANNOUNCEMENT_MAX_TIME
 	return TRUE
 
+/*
+	DEPRECATED: ALL MARKER FUNCTIONS NEED TO BE MOVED TO THE MARKER OBJECT
+*/
 /mob/camera/marker/proc/transport_core()
 	if(marker_core)
 		forceMove(marker_core.drop_location())
 
 /mob/camera/marker/proc/jump_to_node()
-	if(GLOB.marker_nodes.len)
+	if(GLOB.growth_nodes.len)
 		var/list/nodes = list()
-		for(var/i in 1 to GLOB.marker_nodes.len)
-			var/obj/structure/marker/special/node/B = GLOB.marker_nodes[i]
+		for(var/i in 1 to GLOB.growth_nodes.len)
+			var/obj/structure/necromorph/growth/special/node/B = GLOB.growth_nodes[i]
 			nodes["Marker Node #[i] ([get_area_name(B)])"] = B
 		var/node_name = input(src, "Choose a node to jump to.", "Node Jump") in nodes
-		var/obj/structure/marker/special/node/chosen_node = nodes[node_name]
+		var/obj/structure/necromorph/growth/special/node/chosen_node = nodes[node_name]
 		if(chosen_node)
 			forceMove(chosen_node.loc)
 
 /mob/camera/marker/proc/createSpecial(price, marker, minSeparation, needsNode, turf/T)
 	if(!T)
 		T = get_turf(src)
-	var/obj/structure/marker/B = (locate(/obj/structure/marker) in T)
+	var/obj/structure/necromorph/growth/B = (locate(/obj/structure/necromorph/growth) in T)
 	if(!B)
 		to_chat(src, span_warning("There is no marker here!"))
 		return
-	if(!istype(B, /obj/structure/marker/normal))
+	if(!istype(B, /obj/structure/necromorph/growth/normal))
 		to_chat(src, span_warning("Unable to use this marker, find a normal one."))
 		return
 	if(needsNode)
@@ -90,17 +97,17 @@
 		if(!(A.area_flags & BLOBS_ALLOWED)) //factory and resource markers must be legit
 			to_chat(src, span_warning("This type of marker must be placed on the station!"))
 			return
-		if(nodes_required && !(locate(/obj/structure/marker/special/node) in orange(MARKER_NODE_PULSE_RANGE, T)) && !(locate(/obj/structure/marker/special/core) in orange(MARKER_CORE_PULSE_RANGE, T)))
+		if(nodes_required && !(locate(/obj/structure/necromorph/growth/special/node) in orange(MARKER_NODE_PULSE_RANGE, T)) && !(locate(/obj/structure/necromorph/growth/special/core) in orange(MARKER_CORE_PULSE_RANGE, T)))
 			to_chat(src, span_warning("You need to place this marker closer to a node or core!"))
 			return //handholdotron 2000
 	if(minSeparation)
-		for(var/obj/structure/marker/L in orange(minSeparation, T))
+		for(var/obj/structure/necromorph/growth/L in orange(minSeparation, T))
 			if(L.type == marker)
 				to_chat(src, span_warning("There is a similar marker nearby, move more than [minSeparation] tiles away from it!"))
 				return
 	if(!can_buy(price))
 		return
-	var/obj/structure/marker/N = B.change_to(marker, src)
+	var/obj/structure/necromorph/growth/N = B.change_to(marker, src)
 	return N
 
 
@@ -115,7 +122,7 @@
 	if(world.time < last_attack)
 		return
 	var/list/possiblemarkers = list()
-	for(var/obj/structure/marker/AB in range(T, 1))
+	for(var/obj/structure/necromorph/growth/AB in range(T, 1))
 		possiblemarkers += AB
 	if(!possiblemarkers.len)
 		to_chat(src, span_warning("There is no marker adjacent to the target tile!"))
@@ -127,7 +134,7 @@
 				continue
 			if(L.stat != DEAD)
 				attacksuccess = TRUE
-		var/obj/structure/marker/B = locate() in T
+		var/obj/structure/necromorph/growth/B = locate() in T
 		if(B)
 			if(attacksuccess) //if we successfully attacked a turf with a marker on it, only give an attack refund
 				add_points(MARKER_ATTACK_REFUND)
@@ -138,12 +145,12 @@
 			var/list/cardinalmarkers = list()
 			var/list/diagonalmarkers = list()
 			for(var/I in possiblemarkers)
-				var/obj/structure/marker/IB = I
+				var/obj/structure/necromorph/growth/IB = I
 				if(get_dir(IB, T) in GLOB.cardinals)
 					cardinalmarkers += IB
 				else
 					diagonalmarkers += IB
-			var/obj/structure/marker/OB
+			var/obj/structure/necromorph/growth/OB
 			if(cardinalmarkers.len)
 				OB = pick(cardinalmarkers)
 				if(!OB.expand(T, src))
@@ -158,7 +165,7 @@
 			last_attack = world.time + CLICK_CD_RAPID
 
 /mob/camera/marker/proc/remove_marker(turf/T)
-	var/obj/structure/marker/B = locate() in T
+	var/obj/structure/necromorph/growth/B = locate() in T
 	if(!B)
 		to_chat(src, span_warning("There is no marker there!"))
 		return

@@ -13,18 +13,19 @@
 
 
 
-//Few global vars to track the marker_overmind
-GLOBAL_LIST_EMPTY(markers) //complete list of all markers made.
+//Few global vars to track the marker_master
+// NEED TO TRACK BIOMASS AND NUMBER OF NECROMORPHS
+GLOBAL_LIST_EMPTY(growths) //complete list of all markers made.
 GLOBAL_LIST_EMPTY(marker_cores)
-GLOBAL_LIST_EMPTY(marker_overminds)
-GLOBAL_LIST_EMPTY(marker_nodes)
-GLOBAL_LIST_EMPTY(corruption_special)
+GLOBAL_LIST_EMPTY(master_signals)
+GLOBAL_LIST_EMPTY(growth_nodes)
+GLOBAL_LIST_EMPTY(growth_special)
 GLOBAL_LIST_EMPTY(corruption)
 
-/mob/camera/marker
+/mob/camera/marker //Should we update to /mob/camera/necromorph/master in order to keep all necromorphs under one standard parent name.
 	name = "Marker OVERMIND"
 	real_name = "Marker OVERMIND"
-	desc = "The overmind. It controls the marker."
+	desc = "The master. It controls the marker."
 	icon = 'modular_skyrat/modules/necromorphs/icons/mob/necromorph/mastersignal.dmi'
 	icon_state = "mastersignal"
 	pixel_x = -23
@@ -37,18 +38,23 @@ GLOBAL_LIST_EMPTY(corruption)
 	pass_flags = PASSBLOB
 	faction = list(ROLE_NECROMORPH)
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
-	hud_type = /datum/hud/marker_overmind
+	hud_type = /datum/hud/marker_master
 
 	var/datum/corruption/corruption
 
-	var/obj/structure/marker/special/core/marker_core = null // The marker overmind's core
-	var/marker_points = 0
-	var/max_marker_points = OVERMIND_MAX_POINTS_DEFAULT
-	var/last_attack = 0
-	var/list/marker_mobs = list()
+/*
+	DEPRECATED: REMOVE NEED FOR
+	```	var/obj/structure/necromorph/growth/special/core/marker_core = null```
 
-	/// A list of all marker structures
-	var/list/all_markers = list()
+*/
+	var/obj/structure/necromorph/growth/special/core/marker_core = null // The marker master's core
+	var/marker_points = 0 //DEPRECATED - MOVE TO BIOMASS AS RESOURCE.
+	var/max_marker_points = OVERMIND_MAX_POINTS_DEFAULT //DEPRECATED - MOVE TO BIOMASS AS RESOURCE.
+	var/last_attack = 0
+	var/list/marker_mobs = list() //DEPRECATED - USE NECROMORPH SUBSYSTEM FOR MOB TRACKING.
+
+	/// A list of all marker structures - REVISION: Switch from "markers" to "growth"
+	var/list/all_growths = list()
 	var/list/resource_markers = list()
 	var/list/factory_markers = list()
 	var/list/node_markers = list()
@@ -61,7 +67,7 @@ GLOBAL_LIST_EMPTY(corruption)
 	var/autoplace_max_time = OVERMIND_STARTING_AUTO_PLACE_TIME // Automatically place the core in a random spot
 	var/list/markers_legit = list()
 	var/max_count = 0 //The biggest it got before death
-	var/markerwincount = OVERMIND_WIN_CONDITION_AMOUNT
+	var/markerwincount = OVERMIND_WIN_CONDITION_AMOUNT //DEPRECATED - NECROMORPHS DONT WIN BY SIZE.
 	var/victory_in_progress = FALSE
 	var/rerolling = FALSE
 	var/announcement_size = OVERMIND_ANNOUNCEMENT_MIN_SIZE // Announce the biohazard when this size is reached
@@ -70,16 +76,15 @@ GLOBAL_LIST_EMPTY(corruption)
 
 /mob/camera/marker/Initialize(mapload, starting_points = OVERMIND_STARTING_POINTS)
 	validate_location()
-	marker_points = starting_points
+	marker_points = starting_points //STARTING BIOMASS
 	manualplace_min_time += world.time
 	autoplace_max_time += world.time
-	GLOB.overminds += src
+	GLOB.master_signals += src
 	var/new_name = "[initial(name)] ([rand(1, 999)])"
 	name = new_name
 	real_name = new_name
 	last_attack = world.time
-//	var/datum/blobstrain/BS = pick(marker)
-	if(marker_core)
+	if(marker_core) //DEPRECATED - CHECK FOR MARKER | CORE IS A SEPERATE ENTITY THAT BEGINS INFECTION AND GROWTH.
 		marker_core.update_appearance()
 	SSshuttle.registerHostileEnvironment(src)
 	. = ..()
@@ -145,15 +150,15 @@ GLOBAL_LIST_EMPTY(corruption)
 
 
 /mob/camera/marker/Destroy()
-	for(var/obj/structure/marker/marker_structure as anything in all_markers)
-		marker_structure.overmind = null
-	all_markers = null
+	for(var/obj/structure/necromorph/growth/growth_structure as anything in all_growths)
+		growth_structure.master = null
+	all_growths = null
 	resource_markers = null
 	factory_markers = null
 	node_markers = null
 	marker_mobs = null
 	bioluminescence_corruption = null
-	GLOB.overminds -= src
+	GLOB.master_signals -= src
 
 	SSshuttle.clearHostileEnvironment(src)
 	STOP_PROCESSING(SSobj, src)
@@ -164,7 +169,7 @@ GLOBAL_LIST_EMPTY(corruption)
 	. = ..()
 	if(!. || !client)
 		return FALSE
-	to_chat(src, span_notice("You are the overmind!"))
+	to_chat(src, span_notice("You are the master!"))
 	update_health_hud()
 	add_points(0)
 
@@ -212,13 +217,13 @@ GLOBAL_LIST_EMPTY(corruption)
 	var/rendered = span_big("<font color=\"#EE4000\"><b>\[Marker Telepathy\] [name]()</b> [message_a]</font>")
 
 	for(var/mob/M in GLOB.mob_list)
-		if(ismarkerovermind(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
+		if(ismarkermaster(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
 			to_chat(M, rendered)
 		if(isobserver(M))
 			var/link = FOLLOW_LINK(M, src)
 			to_chat(M, "[link] [rendered]")
 
-/mob/camera/marker/marker_act(obj/structure/marker/B)
+/mob/camera/marker/marker_act(obj/structure/necromorph/growth/B)
 	return
 
 /mob/camera/marker/get_status_tab_items()
@@ -234,7 +239,7 @@ GLOBAL_LIST_EMPTY(corruption)
 
 /mob/camera/marker/Move(NewLoc, Dir = 0)
 	if(placed)
-		var/obj/structure/marker/B = locate() in range(OVERMIND_MAX_CAMERA_STRAY, NewLoc)
+		var/obj/structure/necromorph/growth/B = locate() in range(OVERMIND_MAX_CAMERA_STRAY, NewLoc)
 		if(B)
 			forceMove(NewLoc)
 		else
@@ -248,7 +253,7 @@ GLOBAL_LIST_EMPTY(corruption)
 
 /mob/camera/marker/mind_initialize()
 	. = ..()
-	var/datum/antagonist/marker/B = mind.has_antag_datum(/datum/antagonist/marker)
+	var/datum/antagonist/necromorph/growth/B = mind.has_antag_datum(/datum/antagonist/marker)
 	if(!B)
 		mind.add_antag_datum(/datum/antagonist/marker)
 

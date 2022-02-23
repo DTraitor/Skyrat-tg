@@ -89,7 +89,7 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		overmind.marker_core.strong_reinforce_range += core_strong_reinforcement_range_bonus
 		overmind.marker_core.reflector_reinforce_range += core_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/marker/special/node/N as anything in overmind.node_markers)
+	for(var/obj/structure/necromorph/growth/special/node/N as anything in overmind.node_markers)
 		N.max_slashers += node_spore_bonus
 		N.claim_range += node_range_bonus
 		N.pulse_range += node_range_bonus
@@ -97,10 +97,10 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		N.strong_reinforce_range += node_strong_reinforcement_range_bonus
 		N.reflector_reinforce_range += node_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/marker/special/factory/F as anything in overmind.factory_markers)
+	for(var/obj/structure/necromorph/growth/special/factory/F as anything in overmind.factory_markers)
 		F.max_slashers += factory_spore_bonus
 
-	for(var/obj/structure/marker/B as anything in overmind.all_markers)
+	for(var/obj/structure/necromorph/growth/B as anything in overmind.all_growths)
 		B.modify_max_integrity(B.max_integrity * max_structure_health_multiplier)
 		B.update_appearance()
 
@@ -120,7 +120,7 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		overmind.marker_core.strong_reinforce_range -= core_strong_reinforcement_range_bonus
 		overmind.marker_core.reflector_reinforce_range -= core_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/marker/special/node/N as anything in overmind.node_markers)
+	for(var/obj/structure/necromorph/growth/special/node/N as anything in overmind.node_markers)
 		N.max_slashers -= node_spore_bonus
 		N.claim_range -= node_range_bonus
 		N.pulse_range -= node_range_bonus
@@ -128,10 +128,10 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		N.strong_reinforce_range -= node_strong_reinforcement_range_bonus
 		N.reflector_reinforce_range -= node_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/marker/special/factory/F as anything in overmind.factory_markers)
+	for(var/obj/structure/necromorph/growth/special/factory/F as anything in overmind.factory_markers)
 		F.max_slashers -= factory_spore_bonus
 
-	for(var/obj/structure/marker/B as anything in overmind.all_markers)
+	for(var/obj/structure/necromorph/growth/B as anything in overmind.all_growths)
 		B.modify_max_integrity(B.max_integrity / max_structure_health_multiplier)
 
 	for(var/mob/living/simple_animal/hostile/necromorph/BM as anything in overmind.marker_mobs)
@@ -159,22 +159,22 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 
 /datum/corruption/proc/markerbernaut_attack(mob/living/L, marker) // When this marker's markerbernaut attacks people
 
-/datum/corruption/proc/damage_reaction(obj/structure/marker/B, damage, damage_type, damage_flag, coefficient = 1) //when the marker takes damage, do this
+/datum/corruption/proc/damage_reaction(obj/structure/necromorph/growth/B, damage, damage_type, damage_flag, coefficient = 1) //when the marker takes damage, do this
 	return coefficient*damage
 
-/datum/corruption/proc/death_reaction(obj/structure/marker/B, damage_flag, coefficient = 1) //when a marker dies, do this
+/datum/corruption/proc/death_reaction(obj/structure/necromorph/growth/B, damage_flag, coefficient = 1) //when a marker dies, do this
 	return
 
-/datum/corruption/proc/expand_reaction(obj/structure/marker/B, obj/structure/marker/newB, turf/T, mob/camera/marker/O, coefficient = 1) //when the marker expands, do this
+/datum/corruption/proc/expand_reaction(obj/structure/necromorph/growth/B, obj/structure/necromorph/growth/newB, turf/T, mob/camera/marker/O, coefficient = 1) //when the marker expands, do this
 	return
 
-/datum/corruption/proc/tesla_reaction(obj/structure/marker/B, power, coefficient = 1) //when the marker is hit by a tesla bolt, do this
+/datum/corruption/proc/tesla_reaction(obj/structure/necromorph/growth/B, power, coefficient = 1) //when the marker is hit by a tesla bolt, do this
 	return TRUE //return 0 to ignore damage
 
-/datum/corruption/proc/extinguish_reaction(obj/structure/marker/B, coefficient = 1) //when the marker is hit with water, do this
+/datum/corruption/proc/extinguish_reaction(obj/structure/necromorph/growth/B, coefficient = 1) //when the marker is hit with water, do this
 	return
 
-/datum/corruption/proc/emp_reaction(obj/structure/marker/B, severity, coefficient = 1) //when the marker is hit with an emp, do this
+/datum/corruption/proc/emp_reaction(obj/structure/necromorph/growth/B, severity, coefficient = 1) //when the marker is hit with an emp, do this
 	return
 
 /datum/corruption/proc/examine(mob/user)

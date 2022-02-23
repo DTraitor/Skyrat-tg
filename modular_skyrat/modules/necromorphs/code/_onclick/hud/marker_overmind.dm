@@ -84,7 +84,7 @@
 /atom/movable/screen/marker/resource_marker/Click()
 	if(ismarkerovermind(usr))
 		var/mob/camera/marker/B = usr
-		B.createSpecial(MARKER_STRUCTURE_RESOURCE_COST, /obj/structure/marker/special/resource, MARKER_RESOURCE_MIN_DISTANCE, TRUE)
+		B.createSpecial(MARKER_STRUCTURE_RESOURCE_COST, /obj/structure/necromorph/growth/special/resource, MARKER_RESOURCE_MIN_DISTANCE, TRUE)
 
 /atom/movable/screen/marker/node_marker
 	icon_state = "ui_node"
@@ -100,7 +100,7 @@
 /atom/movable/screen/marker/node_marker/Click()
 	if(ismarkerovermind(usr))
 		var/mob/camera/marker/B = usr
-		B.createSpecial(MARKER_STRUCTURE_NODE_COST, /obj/structure/marker/special/node, MARKER_NODE_MIN_DISTANCE, FALSE)
+		B.createSpecial(MARKER_STRUCTURE_NODE_COST, /obj/structure/necromorph/growth/special/node, MARKER_NODE_MIN_DISTANCE, FALSE)
 
 /atom/movable/screen/marker/bioluminescence
 	icon_state = "ui_node"
@@ -116,7 +116,7 @@
 /atom/movable/screen/marker/bioluminescence/Click()
 	if(ismarkerovermind(usr))
 		var/mob/camera/marker/B = usr
-		B.createSpecial(CORRUPTION_STRUCTURE_BIOLUMINESCENCE_COST, /obj/structure/marker/special/bioluminescence, MARKER_NODE_MIN_DISTANCE, FALSE)
+		B.createSpecial(CORRUPTION_STRUCTURE_BIOLUMINESCENCE_COST, /obj/structure/necromorph/growth/special/bioluminescence, MARKER_NODE_MIN_DISTANCE, FALSE)
 
 
 /atom/movable/screen/marker/factory_marker
@@ -133,7 +133,7 @@
 /atom/movable/screen/marker/factory_marker/Click()
 	if(ismarkerovermind(usr))
 		var/mob/camera/marker/B = usr
-		B.createSpecial(MARKER_STRUCTURE_FACTORY_COST, /obj/structure/marker/special/factory, MARKER_FACTORY_MIN_DISTANCE, TRUE)
+		B.createSpecial(MARKER_STRUCTURE_FACTORY_COST, /obj/structure/necromorph/growth/special/factory, MARKER_FACTORY_MIN_DISTANCE, TRUE)
 /atom/movable/screen/marker/relocate_core
 	icon_state = "ui_swap"
 	// Name and description get given their proper values on Initialize()

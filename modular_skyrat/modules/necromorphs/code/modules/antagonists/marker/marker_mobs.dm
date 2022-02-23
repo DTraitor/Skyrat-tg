@@ -1,6 +1,10 @@
 
 
 /*
+	## TEMPORARY FILE FOR FUNCTION ONLY ##
+	## MOBS SHOULD NOT BE STORED IN THE MARKER CODE##
+	## ALL MOBS EITHER NEED TO BE SEPERATE SIMPLE MOBS OR CARBONS##
+
 
 	This is only temporary, as the marker should spawn carbons that are player controlled, not
 	simple mobs. All mobs are spawned based on a currency system known as BIOMASS which will need
@@ -31,8 +35,8 @@
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
 	initial_language_holder = /datum/language_holder/empty
-	var/mob/camera/marker/overmind = null
-	var/obj/structure/marker/special/factory = null
+	var/mob/camera/marker/master = null
+	var/obj/structure/necromorph/growth/special/factory = null
 	var/independent = FALSE
 
 /mob/living/simple_animal/hostile/necromorph/update_icons()
@@ -46,16 +50,16 @@
 		pass_flags &= ~PASSMARKER
 
 /mob/living/simple_animal/hostile/necromorph/Destroy()
-	if(overmind)
-		overmind.marker_mobs -= src
+	if(master)
+		master.marker_mobs -= src
 	return ..()
 
 /mob/living/simple_animal/hostile/necromorph/get_status_tab_items()
 	. = ..()
-	if(overmind)
-		. += "Markers to Win: [overmind.markers_legit.len]/[overmind.markerwincount]"
+	if(master)
+		. += "Markers to Win: [master.markers_legit.len]/[master.markerwincount]"
 
-/mob/living/simple_animal/hostile/necromorph/marker_act(obj/structure/marker/B)
+/mob/living/simple_animal/hostile/necromorph/marker_act(obj/structure/necromorph/growth/B)
 	if(stat != DEAD && health < maxHealth)
 		for(var/i in 1 to 2)
 			var/obj/effect/temp_visual/heal/H = new /obj/effect/temp_visual/heal(get_turf(src)) //hello yes you are being healed
@@ -71,11 +75,11 @@
 
 /mob/living/simple_animal/hostile/necromorph/CanAllowThrough(atom/movable/mover, turf/target)
 	. = ..()
-	if(istype(mover, /obj/structure/marker))
+	if(istype(mover, /obj/structure/necromorph/growth))
 		return TRUE
 
 /mob/living/simple_animal/hostile/necromorph/Process_Spacemove(movement_dir = 0)
-	for(var/obj/structure/marker/B in range(1, src))
+	for(var/obj/structure/necromorph/growth/B in range(1, src))
 		return 1
 	return ..()
 
@@ -83,7 +87,7 @@
 	var/spanned_message = say_quote(message)
 	var/rendered = "<font color=\"#EE4000\"><b>\[Marker Telepathy\] [real_name]</b> [spanned_message]</font>"
 	for(var/M in GLOB.mob_list)
-		if(isovermind(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
+		if(ismaster(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
 			to_chat(M, rendered)
 		if(isobserver(M))
 			var/link = FOLLOW_LINK(M, src)

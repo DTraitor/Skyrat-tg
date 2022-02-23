@@ -1,5 +1,5 @@
 
-/obj/marker_act(obj/structure/marker/B)
+/obj/growth_act(obj/structure/necromorph/growth/B)
 	if (!..())
 		return
 	if(isturf(loc))

@@ -5247,7 +5247,6 @@
 #include "modular_skyrat\modules\nanotrasen_rep\code\m45a5.dm"
 #include "modular_skyrat\modules\nanotrasen_rep\code\nanotrasen_representative.dm"
 #include "modular_skyrat\modules\nanotrasen_rep\code\Space_Station_13_areas.dm"
-<<<<<<< HEAD
 #include "modular_skyrat\modules\necromorphs\__DEFINES\audio.dm"
 #include "modular_skyrat\modules\necromorphs\__DEFINES\colors.dm"
 #include "modular_skyrat\modules\necromorphs\__DEFINES\damage_organs.dm"
@@ -5261,6 +5260,7 @@
 #include "modular_skyrat\modules\necromorphs\_global_vars\mapping.dm"
 #include "modular_skyrat\modules\necromorphs\_global_vars\misc.dm"
 #include "modular_skyrat\modules\necromorphs\code\_helpers\_macros.dm"
+#include "modular_skyrat\modules\necromorphs\code\_helpers\crew.dm"
 #include "modular_skyrat\modules\necromorphs\code\_helpers\detection.dm"
 #include "modular_skyrat\modules\necromorphs\code\_helpers\icons.dm"
 #include "modular_skyrat\modules\necromorphs\code\_helpers\lists.dm"
@@ -5309,12 +5309,13 @@
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\marker_mobs.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\marker_overmind.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\powers.dm"
-#include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\_marker.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\core.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\corruption.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\factory.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\node.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\resource.dm"
+#include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\corruption\growth.dm"
+#include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\corruption\growth_special.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\antagonists\marker\structures\necromorph\bioluminescence.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\clothing\spacesuits\rig\modules\kinesis\extension.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\clothing\spacesuits\rig\modules\kinesis\helpers.dm"
@@ -5369,8 +5370,7 @@
 #include "modular_skyrat\modules\neural-lacing\code\resleever.dm"
 #include "modular_skyrat\modules\neural-lacing\code\stack.dm"
 #include "modular_skyrat\modules\neural-lacing\code\traits.dm"
-=======
->>>>>>> master
+
 #include "modular_skyrat\modules\new_cells\code\power_cell.dm"
 #include "modular_skyrat\modules\novaya_ert\code\belt.dm"
 #include "modular_skyrat\modules\novaya_ert\code\ert.dm"

@@ -10,6 +10,18 @@
 
 	All
 
+	## APPEARANCE UPDATES ##
+	- Initial Growth - Vine Like small mostly translucent feelers
+	- Minor Growth - Thicker Vine like patch, animation could start here.
+	- Medium Growth - Standard Growth, thick viscious and animation
+	- Heavy Growth - Heavy growth, stronger, thicker, movement debuff.
+	- Growth Wall
+		- Visual on walls
+
+	- Growth Barrier
+	- Growth Door
+	- Growth Vent
+
 */
 
 //I will need to recode parts of this but I am way too tired atm //I don't know who left this comment but they never did come back
@@ -44,7 +56,7 @@
 	var/ignore_syncmesh_share = 0
 	/// If the marker blocks atmos and heat spread
 	var/atmosblock = FALSE
-	var/mob/camera/necromorph/master
+	var/mob/camera/marker/master
 
 
 	var/marker_spawnable = TRUE	//When true, this automatically shows in the necroshop
@@ -68,11 +80,11 @@
 	. = ..()
 	if(owner_master)
 		master = owner_master
-		master.all_markers += src
+		master.all_growths += src
 		var/area/Amarker = get_area(src)
 		if(Amarker.area_flags & BLOBS_ALLOWED) //Is this area allowed for winning as marker?
-			master.markers_legit += src
-	GLOB.markers += src //Keep track of the marker in the normal list either way
+			master.growths_legit += src
+	GLOB.growths += src //Keep track of the marker in the normal list either way
 	setDir(pick(GLOB.cardinals))
 	update_appearance()
 	if(atmosblock)
@@ -114,10 +126,10 @@
 		atmosblock = FALSE
 		air_update_turf(TRUE, FALSE)
 	if(master)
-		master.all_markers -= src
-		master.markers_legit -= src  //if it was in the legit markers list, it isn't now
+		master.all_growths -= src
+		master.growths_legit -= src  //if it was in the legit markers list, it isn't now
 		master = null
-	GLOB.markers -= src //it's no longer in the all markers list either
+	GLOB.growths -= src //it's no longer in the all markers list either
 	playsound(src.loc, 'sound/effects/splat.ogg', 50, TRUE) //Expand() is no longer broken, no check necessary.
 	return ..()
 
@@ -133,7 +145,7 @@
 		for(var/A in dirs)
 			if(direction == text2num(A))
 				for(var/B in dirs[A])
-					var/C = locate(/obj/structure/marker) in get_step(src, B)
+					var/C = locate(/obj/structure/necromorph/growth) in get_step(src, B)
 					if(C)
 						result++
 		. -= result - 1
@@ -162,18 +174,18 @@
 
 /obj/structure/necromorph/growth/proc/ConsumeTile()
 	for(var/atom/A in loc)
-		if(isliving(A) && master && !ismarkermonster(A)) // Make sure to inject strain-reagents with automatic attacks when needed.
+		if(isliving(A) && master && !isNecromorph(A)) // Make sure to inject strain-reagents with automatic attacks when needed.
 			//master.marker.attack_living(A)
 			continue // Don't smack them twice though
-			A.marker_act(src)
+			A.growth_act(src)
 	if(iswallturf(loc))
-		loc.marker_act(src) //don't ask how a wall got on top of the core, just eat it
+		loc.growth_act(src) //don't ask how a wall got on top of the core, just eat it
 
-/obj/structure/necromorph/growth/proc/marker_attack_animation(atom/A = null, controller) //visually attacks an atom
+/obj/structure/necromorph/growth/proc/growth_attack_animation(atom/A = null, controller) //visually attacks an atom
 	var/obj/effect/temp_visual/blob/O = new /obj/effect/temp_visual/blob(src.loc)
 	O.setDir(dir)
 	if(controller)
-		var/mob/camera/necromorph/growth/BO = controller
+		var/mob/camera/marker/BO = controller
 		O.color = BO.color
 		O.alpha = 200
 	else if(master)
@@ -195,30 +207,30 @@ Growth Expand Proc: OLD
 			var/dirn = pick(dirs)
 			dirs.Remove(dirn)
 			T = get_step(src, dirn)
-			if(!(locate(/obj/structure/marker) in T))
+			if(!(locate(/obj/structure/necromorph/growth) in T))
 				break
 			else
 				T = null
 	if(!T)
 		return
-	var/make_marker = TRUE //can we make a marker?
+	var/make_growth = TRUE //can we make a marker?
 
 	if(isspaceturf(T) && !(locate(/obj/structure/lattice) in T) && prob(80))
-		make_marker = FALSE
+		make_growth = FALSE
 		playsound(src.loc, 'sound/effects/splat.ogg', 50, TRUE) //Let's give some feedback that we DID try to spawn in space, since players are used to it
 
 	ConsumeTile() //hit the tile we're in, making sure there are no border objects blocking us
 
 	if(!T.CanPass(src, T)) //is the target turf impassable
-		make_marker = FALSE
-		T.marker_act(src) //hit the turf if it is
+		make_growth = FALSE
+		T.growth_act(src) //hit the turf if it is
 	for(var/atom/A in T)
 		if(!A.CanPass(src, T)) //is anything in the turf impassable
-			make_marker = FALSE
+			make_growth = FALSE
 			continue // Don't smack them twice though
-		A.marker_act(src) //also hit everything in the turf
+		A.growth_act(src) //also hit everything in the turf
 
-	if(make_marker) //well, can we?
+	if(make_growth) //well, can we?
 		var/obj/structure/necromorph/growth/B = new /obj/structure/necromorph/growth/normal(src.loc, (controller || master))
 		B.density = TRUE
 		if(T.Enter(B,src)) //NOW we can attempt to move into the tile
@@ -228,7 +240,7 @@ Growth Expand Proc: OLD
 			return B
 		else
 			marker_attack_animation(T, controller)
-			T.marker_act(src) //if we can't move in hit the turf again
+			T.growth_act(src) //if we can't move in hit the turf again
 			qdel(B) //we should never get to this point, since we checked before moving in. destroy the blob so we don't have two blobs on one tile
 			return
 	else

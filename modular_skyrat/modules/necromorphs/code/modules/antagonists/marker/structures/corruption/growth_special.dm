@@ -1,8 +1,8 @@
 /obj/structure/necromorph/growth/special // Generic type for nodes/factories/cores/resource
 	// Core and node vars: claiming, pulsing and expanding
-	/// The radius inside which (previously dead) marker tiles are 'claimed' again by the pulsing overmind. Very rarely used.
+	/// The radius inside which (previously dead) marker tiles are 'claimed' again by the pulsing master. Very rarely used.
 	var/claim_range = 0
-	/// The radius inside which markers are pulsed by this overmind. Does stuff like expanding, making marker slashers from factories, make resources from nodes etc.
+	/// The radius inside which markers are pulsed by this master. Does stuff like expanding, making marker slashers from factories, make resources from nodes etc.
 	var/pulse_range = 0
 	/// The radius up to which this special structure naturally grows normal markers.
 	var/expand_range = 0
@@ -41,9 +41,9 @@
 
 	return default_rotation
 */
-/obj/structure/necromorph/growth/special/proc/pulse_area(mob/camera/necromorph/growth/pulsing_overmind, claim_range = 10, pulse_range = 3, expand_range = 2)
-	if(QDELETED(pulsing_overmind))
-		pulsing_overmind = overmind
+/obj/structure/necromorph/growth/special/proc/pulse_area(mob/camera/necromorph/growth/pulsing_master, claim_range = 10, pulse_range = 3, expand_range = 2)
+	if(QDELETED(pulsing_master))
+		pulsing_master = master
 	Be_Pulsed()
 	var/expanded = FALSE
 	if(prob(70*(1/MARKER_EXPAND_CHANCE_MULTIPLIER)) && expand())
@@ -54,8 +54,8 @@
 	shuffle_inplace(markers_to_affect)
 	for(var/L in markers_to_affect)
 		var/obj/structure/necromorph/growth/B = L
-		if(!B.overmind && prob(30))
-			B.overmind = pulsing_overmind //reclaim unclaimed, non-core markers.
+		if(!B.master && prob(30))
+			B.master = pulsing_master //reclaim unclaimed, non-core markers.
 			B.update_appearance()
 		var/distance = get_dist(get_turf(src), get_turf(B))
 		var/expand_probablity = max(20 - distance * 8, 1)
@@ -82,10 +82,10 @@
 		return
 	COOLDOWN_START(src, slasher_delay, slasher_cooldown)
 	var/mob/living/simple_animal/hostile/necromorph/slasher/BS = new (loc, src)
-	if(overmind) //if we don't have an overmind, we don't need to do anything but make a slasher
-		BS.overmind = overmind
+	if(master) //if we don't have an master, we don't need to do anything but make a slasher
+		BS.master = master
 		BS.update_icons()
-		overmind.marker_mobs.Add(BS)
+		master.marker_mobs.Add(BS)
 
 // /obj/structure/necromorph/growth/special/proc/produce_spores()
 // 	if(brute)
@@ -96,7 +96,7 @@
 // 		return
 // 	COOLDOWN_START(src, slasher_delay, slasher_cooldown)
 // 	var/mob/living/simple_animal/hostile/necromorph/slasher/BS = new (loc, src)
-// 	if(overmind) //if we don't have an overmind, we don't need to do anything but make a slasher
-// 		BS.overmind = overmind
+// 	if(master) //if we don't have an master, we don't need to do anything but make a slasher
+// 		BS.master = master
 // 		BS.update_icons()
-// 		overmind.marker_mobs.Add(BS)
+// 		master.marker_mobs.Add(BS)

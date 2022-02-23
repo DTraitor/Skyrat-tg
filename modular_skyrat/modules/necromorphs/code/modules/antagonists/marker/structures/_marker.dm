@@ -67,11 +67,11 @@
 	. = ..()
 	if(owner_overmind)
 		overmind = owner_overmind
-		overmind.all_markers += src
+		overmind.all_growths += src
 		var/area/Amarker = get_area(src)
 		if(Amarker.area_flags & BLOBS_ALLOWED) //Is this area allowed for winning as marker?
 			overmind.markers_legit += src
-	GLOB.markers += src //Keep track of the marker in the normal list either way
+	GLOB.growths += src //Keep track of the marker in the normal list either way
 	setDir(pick(GLOB.cardinals))
 	update_appearance()
 	if(atmosblock)
@@ -113,10 +113,10 @@
 		atmosblock = FALSE
 		air_update_turf(TRUE, FALSE)
 	if(overmind)
-		overmind.all_markers -= src
+		overmind.all_growths -= src
 		overmind.markers_legit -= src  //if it was in the legit markers list, it isn't now
 		overmind = null
-	GLOB.markers -= src //it's no longer in the all markers list either
+	GLOB.growths -= src //it's no longer in the all markers list either
 	playsound(src.loc, 'sound/effects/splat.ogg', 50, TRUE) //Expand() is no longer broken, no check necessary.
 	return ..()
 
@@ -164,7 +164,7 @@
 		if(isliving(A) && overmind && !ismarkermonster(A)) // Make sure to inject strain-reagents with automatic attacks when needed.
 			//overmind.marker.attack_living(A)
 			continue // Don't smack them twice though
-			A.marker_act(src)
+			A.growth_act(src)
 	if(iswallturf(loc))
 		loc.marker_act(src) //don't ask how a wall got on top of the core, just eat it
 

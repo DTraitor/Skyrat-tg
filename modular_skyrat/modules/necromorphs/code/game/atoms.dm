@@ -7,9 +7,9 @@
 	var/default_alpha = 255
 	var/default_scale = 1
 
-/atom/proc/marker_act(obj/structure/marker/B)
-	var/marker_act_result = SEND_SIGNAL(src, COMSIG_ATOM_MARKER_ACT, B)
-	if (marker_act_result & COMPONENT_CANCEL_BLOB_ACT)
+/atom/proc/growth_act(obj/structure/necromorph/growth/B)
+	var/growth_act_result = SEND_SIGNAL(src, COMSIG_ATOM_MARKER_ACT, B)
+	if (growth_act_result & COMPONENT_CANCEL_BLOB_ACT)
 		return FALSE
 	return TRUE
 

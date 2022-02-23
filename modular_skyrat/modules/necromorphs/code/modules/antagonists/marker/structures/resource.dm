@@ -1,4 +1,4 @@
-/obj/structure/marker/special/resource
+/obj/structure/necromorph/growth/special/resource
 	name = "resource marker"
 	icon = 'icons/mob/blob.dmi'
 	icon_state = "blob_resource"
@@ -9,25 +9,25 @@
 	resistance_flags = LAVA_PROOF
 	var/resource_delay = 0
 
-/obj/structure/marker/special/resource/scannerreport()
+/obj/structure/necromorph/growth/special/resource/scannerreport()
 	return "Gradually supplies the marker with resources, increasing the rate of expansion."
 
-/obj/structure/marker/special/resource/creation_action()
-	if(overmind)
-		overmind.resource_markers += src
+/obj/structure/necromorph/growth/special/resource/creation_action()
+	if(master)
+		master.resource_markers += src
 
-/obj/structure/marker/special/resource/Destroy()
-	if(overmind)
-		overmind.resource_markers -= src
+/obj/structure/necromorph/growth/special/resource/Destroy()
+	if(master)
+		master.resource_markers -= src
 	return ..()
 
-/obj/structure/marker/special/resource/Be_Pulsed()
+/obj/structure/necromorph/growth/special/resource/Be_Pulsed()
 	. = ..()
 	if(resource_delay > world.time)
 		return
 	flick("marker_resource_glow", src)
-	if(overmind)
-		overmind.add_points(MARKER_RESOURCE_GATHER_AMOUNT)
-		resource_delay = world.time + MARKER_RESOURCE_GATHER_DELAY + overmind.resource_markers.len * MARKER_RESOURCE_GATHER_ADDED_DELAY //4 seconds plus a quarter second for each resource marker the overmind has
+	if(master)
+		master.add_points(MARKER_RESOURCE_GATHER_AMOUNT)
+		resource_delay = world.time + MARKER_RESOURCE_GATHER_DELAY + master.resource_markers.len * MARKER_RESOURCE_GATHER_ADDED_DELAY //4 seconds plus a quarter second for each resource marker the master has
 	else
 		resource_delay = world.time + MARKER_RESOURCE_GATHER_DELAY

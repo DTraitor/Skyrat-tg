@@ -1,4 +1,4 @@
-/obj/structure/marker/special/node
+/obj/structure/necromorph/growth/special/node
 	name = "Growth"
 	icon = 'modular_skyrat/modules/necromorphs/icons/effects/corruption.dmi'
 	icon_state = "growth"
@@ -14,39 +14,39 @@
 	max_slashers = MARKER_NODE_MAX_SLASHERS
 	ignore_syncmesh_share = TRUE
 
-/obj/structure/marker/special/node/Initialize()
-	GLOB.marker_nodes += src
+/obj/structure/necromorph/growth/special/node/Initialize()
+	GLOB.growth_nodes += src
 	START_PROCESSING(SSobj, src)
 	. = ..()
 
-/obj/structure/marker/special/node/scannerreport()
+/obj/structure/necromorph/growth/special/node/scannerreport()
 	return "This node acts as a heart for corruption spread, allowing it to extend out up to [MARKER_NODE_EXPAND_RANGE] tiles in all directions from the node. It must be placed on existing corruption from another propagator node, or from the marker."
 
-/obj/structure/marker/special/node/update_icon()
+/obj/structure/necromorph/growth/special/node/update_icon()
 	color = null
 	return ..()
 
-/obj/structure/marker/special/node/update_overlays()
+/obj/structure/necromorph/growth/special/node/update_overlays()
 	. = ..()
 	var/mutable_appearance/marker_overlay = mutable_appearance('icons/mob/blob.dmi', "blob")
-	if(overmind)
+	if(master)
 		marker_overlay.color = COLOR_MARKER_RED
 	. += marker_overlay
 	. += mutable_appearance('modular_skyrat/modules/necromorphs/icons/effects/corruption.dmi', "growth")
 
-/obj/structure/marker/special/node/creation_action()
-	if(overmind)
-		overmind.node_markers += src
+/obj/structure/necromorph/growth/special/node/creation_action()
+	if(master)
+		master.node_markers += src
 
-/obj/structure/marker/special/node/Destroy()
-	GLOB.marker_nodes -= src
+/obj/structure/necromorph/growth/special/node/Destroy()
+	GLOB.growth_nodes -= src
 	STOP_PROCESSING(SSobj, src)
-	if(overmind)
-		overmind.node_markers -= src
+	if(master)
+		master.node_markers -= src
 	return ..()
 
-/obj/structure/marker/special/node/process(delta_time)
-	if(overmind)
-		pulse_area(overmind, claim_range, pulse_range, expand_range)
+/obj/structure/necromorph/growth/special/node/process(delta_time)
+	if(master)
+		pulse_area(master, claim_range, pulse_range, expand_range)
 		//reinforce_area(delta_time)
 		produce_slashers()

@@ -4,12 +4,15 @@
 	This includes the marker shard, but once it is anchored it cannot move anymore.
 	TODO: CREATE SMALL WEAK VARIATION OF MARKER.
 
+	DEPRECATED!: TEMPORARY FILE FOR INITIAL FUNCTIONALITY! ALL FEATURES NEED TO BE MOVE TO THE PROPER
+	MARKER.DM FILE AS THE CORE IS NO LONGER NEEDED. THE MARKER IS THE REPLACEMENT TO THE CORE.
+
 */
 
 
 #define HALLUCINATION_RANGE(P) (min(7, round(P ** 0.25)))
 
-/obj/structure/marker/special/core // THIS IS THE MARKER CORE
+/obj/structure/necromorph/growth/special/core // THIS IS THE MARKER CORE
 	name = "The Marker"
 	icon = 'modular_skyrat/modules/necromorphs/icons/obj/marker_giant.dmi'
 	icon_state = "marker_giant_active"
@@ -81,13 +84,13 @@
 	///Disables the sm's proccessing totally.
 	var/processes = TRUE
 
-/obj/structure/marker/special/core/examine(mob/user)
+/obj/structure/necromorph/growth/special/core/examine(mob/user)
 	. = ..()
 	var/immune = HAS_TRAIT(user, TRAIT_SUPERMATTER_MADNESS_IMMUNE) || (user.mind && HAS_TRAIT(user.mind, TRAIT_SUPERMATTER_MADNESS_IMMUNE))
 	if(isliving(user) && !immune && (get_dist(user, src) < HALLUCINATION_RANGE(hallucination_power)))
 		. += span_danger("You get headaches just from looking at it.")
 
-/obj/structure/marker/special/core/Initialize(mapload, client/new_overmind = null, placed = 0)
+/obj/structure/necromorph/growth/special/core/Initialize(mapload, client/new_master = null, placed = 0)
 	GLOB.marker_cores += src
 	START_PROCESSING(SSobj, src)
 	SSpoints_of_interest.make_point_of_interest(src)
@@ -101,20 +104,20 @@
 		soundloop.mid_sounds = list('sound/machines/sm/loops/calm.ogg' = 1)
 	AddElement(/datum/element/point_of_interest)
 	update_appearance() //so it atleast appears
-	if(!placed && !overmind)
+	if(!placed && !master)
 		return INITIALIZE_HINT_QDEL
 	. = ..()
 
-/obj/structure/marker/special/core/Destroy()
+/obj/structure/necromorph/growth/special/core/Destroy()
 	GLOB.marker_cores -= src
-	if(overmind)
-		overmind.marker_core = null
-		overmind = null
+	if(master)
+		master.marker_core = null
+		master = null
 	STOP_PROCESSING(SSobj, src)
 	QDEL_NULL(soundloop)
 	return ..()
 
-/obj/structure/marker/special/core/scannerreport()
+/obj/structure/necromorph/growth/special/core/scannerreport()
 	return "Directs the marker's expansion, gradually expands, and sustains nearby marker spores and markerbernauts."
 
 /*
@@ -123,7 +126,7 @@
 
 */
 
-/obj/structure/marker/special/core/update_overlays()
+/obj/structure/necromorph/growth/special/core/update_overlays()
 	. = ..()
 	//var/matrix/M = matrix()
 	//M.Translate(-25,-25)
@@ -131,15 +134,15 @@
 
 	// MARKER GROWTH
 	var/mutable_appearance/marker_overlay = mutable_appearance('icons/mob/blob.dmi', "blob") // Adds the growth underneath the marker
-	if(overmind)
+	if(master)
 		marker_overlay.color = COLOR_MARKER_RED
 	. += marker_overlay
 	. += mutable_appearance('modular_skyrat/modules/necromorphs/icons/obj/marker_giant.dmi', "marker_giant_active_anim")
 
-/obj/structure/marker/special/core/update_icon()
+/obj/structure/necromorph/growth/special/core/update_icon()
 	return ..()
 
-/obj/structure/marker/special/core/update_icon_state()
+/obj/structure/necromorph/growth/special/core/update_icon_state()
 	return ..()
 
 /*
@@ -161,39 +164,39 @@
 
 */
 
-/obj/structure/marker/special/core/proc/activate_marker()
+/obj/structure/necromorph/growth/special/core/proc/activate_marker()
 	return
 
-/obj/structure/marker/special/core/ex_act(severity, target)
+/obj/structure/necromorph/growth/special/core/ex_act(severity, target)
 	var/damage = 10 * (severity + 1) //remember, the core takes half brute damage, so this is 20/15/10 damage based on severity
 	take_damage(damage, BRUTE, BOMB, 0)
 
-/obj/structure/marker/special/core/take_damage(damage_amount, damage_type = BRUTE, damage_flag = 0, sound_effect = 1, attack_dir, overmind_reagent_trigger = 1)
+/obj/structure/necromorph/growth/special/core/take_damage(damage_amount, damage_type = BRUTE, damage_flag = 0, sound_effect = 1, attack_dir, master_reagent_trigger = 1)
 	. = ..()
 	if(atom_integrity > 0)
-		if(overmind) //we should have an overmind, but...
-			overmind.update_health_hud()
+		if(master) //we should have an master, but...
+			master.update_health_hud()
 
-/obj/structure/marker/special/core/process(delta_time)
+/obj/structure/necromorph/growth/special/core/process(delta_time)
 	if(QDELETED(src))
 		return
-	if(!overmind)
+	if(!master)
 		qdel(src)
-	if(overmind)
+	if(master)
 		core_process()
-		overmind.update_health_hud()
-	pulse_area(overmind, claim_range, pulse_range, expand_range)
+		master.update_health_hud()
+	pulse_area(master, claim_range, pulse_range, expand_range)
 //	reinforce_area(delta_time)
 	produce_slashers()
 	..()
 
-/obj/structure/marker/special/core/ComponentInitialize()
+/obj/structure/necromorph/growth/special/core/ComponentInitialize()
 	. = ..()
 	AddComponent(/datum/component/stationloving, FALSE, TRUE)
 
-/obj/structure/marker/special/core/on_changed_z_level(turf/old_turf, turf/new_turf)
-	if(overmind && is_station_level(new_turf?.z))
-		overmind.forceMove(get_turf(src))
+/obj/structure/necromorph/growth/special/core/on_changed_z_level(turf/old_turf, turf/new_turf)
+	if(master && is_station_level(new_turf?.z))
+		master.forceMove(get_turf(src))
 	return ..()
 
 /*
@@ -204,8 +207,8 @@ Biomass is inherent to all necromorphs and related features, not just the marker
 */
 
 
-/obj/structure/marker/special/core/proc/core_process()
+/obj/structure/necromorph/growth/special/core/proc/core_process()
 	if(resource_delay <= world.time)
 		resource_delay = world.time + 10 // 1 second
-		overmind.add_points(point_rate+point_rate_bonus)
-	overmind.marker_core.repair_damage(base_core_regen + core_regen_bonus)
+		master.add_points(point_rate+point_rate_bonus)
+	master.marker_core.repair_damage(base_core_regen + core_regen_bonus)

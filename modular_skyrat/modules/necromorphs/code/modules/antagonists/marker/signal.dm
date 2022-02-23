@@ -1,3 +1,10 @@
+/*
+	The Signal is a special entity that is essentially a basic MASTER used to scout and
+	run basic abilities for the necromorphs. It also works as a QUE system for Necromorphs
+	on DS13
+*/
+
+
 GLOBAL_LIST_INIT(signal_sprites, list("markersignal-1",
 	"markersignal-2",
 	"markersignal-3",
