@@ -17,7 +17,7 @@
 
 
 /obj/structure/necromorph/growth/special/bioluminescence/Initialize()
-	GLOB.corruption_special += src
+	GLOB.growth_special += src
 	START_PROCESSING(SSobj, src)
 	set_light(1, 1, light_range, 2, COLOR_BIOLUMINESCENT_ORANGE)
 	. = ..()

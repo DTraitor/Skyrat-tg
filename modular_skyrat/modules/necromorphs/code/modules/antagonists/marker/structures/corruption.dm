@@ -89,7 +89,7 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		overmind.marker_core.strong_reinforce_range += core_strong_reinforcement_range_bonus
 		overmind.marker_core.reflector_reinforce_range += core_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/necromorph/growth/special/node/N as anything in overmind.node_markers)
+	for(var/obj/structure/necromorph/growth/special/node/N as anything in overmind.node_growths)
 		N.max_slashers += node_spore_bonus
 		N.claim_range += node_range_bonus
 		N.pulse_range += node_range_bonus
@@ -97,7 +97,7 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		N.strong_reinforce_range += node_strong_reinforcement_range_bonus
 		N.reflector_reinforce_range += node_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/necromorph/growth/special/factory/F as anything in overmind.factory_markers)
+	for(var/obj/structure/necromorph/growth/special/factory/F as anything in overmind.factory_growths)
 		F.max_slashers += factory_spore_bonus
 
 	for(var/obj/structure/necromorph/growth/B as anything in overmind.all_growths)
@@ -120,7 +120,7 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		overmind.marker_core.strong_reinforce_range -= core_strong_reinforcement_range_bonus
 		overmind.marker_core.reflector_reinforce_range -= core_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/necromorph/growth/special/node/N as anything in overmind.node_markers)
+	for(var/obj/structure/necromorph/growth/special/node/N as anything in overmind.node_growths)
 		N.max_slashers -= node_spore_bonus
 		N.claim_range -= node_range_bonus
 		N.pulse_range -= node_range_bonus
@@ -128,7 +128,7 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 		N.strong_reinforce_range -= node_strong_reinforcement_range_bonus
 		N.reflector_reinforce_range -= node_reflector_reinforcement_range_bonus
 
-	for(var/obj/structure/necromorph/growth/special/factory/F as anything in overmind.factory_markers)
+	for(var/obj/structure/necromorph/growth/special/factory/F as anything in overmind.factory_growths)
 		F.max_slashers -= factory_spore_bonus
 
 	for(var/obj/structure/necromorph/growth/B as anything in overmind.all_growths)
@@ -157,8 +157,7 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 /datum/corruption/proc/attack_living(mob/living/L, list/nearby_markers) // When the marker attacks people
 	send_message(L)
 
-/datum/corruption/proc/markerbernaut_attack(mob/living/L, marker) // When this marker's markerbernaut attacks people
-
+/datum/corruption/proc/markerbernaut_attack(mob/living/L, marker) // DEPRECATED: REMOVE NO MORE BLOBBERNAUGHTS
 /datum/corruption/proc/damage_reaction(obj/structure/necromorph/growth/B, damage, damage_type, damage_flag, coefficient = 1) //when the marker takes damage, do this
 	return coefficient*damage
 
@@ -178,4 +177,4 @@ GLOBAL_LIST_INIT(valid_corruptions, subtypesof(/datum/corruption))
 	return
 
 /datum/corruption/proc/examine(mob/user)
-	return list("<b>Progress to Critical Mass:</b> [span_notice("[overmind.markers_legit.len]/[overmind.markerwincount].")]")
+	return list("<b>Progress to Critical Mass:</b> [span_notice("[overmind.growths_legit.len]/[overmind.markerwincount].")]")

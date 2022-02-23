@@ -152,7 +152,7 @@ TODO: NEEDS TO BE UPDATED WITH PROPER ICONS
 	if(owner?.current)
 		var/mob/camera/marker/B = owner.current
 		if(istype(B))
-			. += "(Progress: [B.markers_legit.len]/[B.markerwincount])"
+			. += "(Progress: [B.growths_legit.len]/[B.markerwincount])"
 
 
 /*

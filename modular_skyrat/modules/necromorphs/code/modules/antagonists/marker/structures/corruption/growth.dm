@@ -174,7 +174,7 @@
 
 /obj/structure/necromorph/growth/proc/ConsumeTile()
 	for(var/atom/A in loc)
-		if(isliving(A) && master && !isNecromorph(A)) // Make sure to inject strain-reagents with automatic attacks when needed.
+		if(isliving(A) && master && !ismarkermonster(A)) // Make sure to inject strain-reagents with automatic attacks when needed.
 			//master.marker.attack_living(A)
 			continue // Don't smack them twice though
 			A.growth_act(src)
@@ -365,7 +365,7 @@ Growth Expand Proc: OLD
 		to_chat(user, "<b>The analyzer beeps once, then reports:</b><br>")
 		SEND_SOUND(user, sound('sound/machines/ping.ogg'))
 		if(master)
-			to_chat(user, "<b>Progress to Critical Mass:</b> [span_notice("[master.markers_legit.len]/[master.markerwincount].")]")
+			to_chat(user, "<b>Progress to Critical Mass:</b> [span_notice("[master.growths_legit.len]/[master.markerwincount].")]")
 			to_chat(user, chemeffectreport(user).Join("\n"))
 		else
 			to_chat(user, "<b>Marker core neutralized. Critical mass no longer attainable.</b>")

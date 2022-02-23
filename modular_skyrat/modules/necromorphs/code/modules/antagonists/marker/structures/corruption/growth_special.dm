@@ -41,7 +41,7 @@
 
 	return default_rotation
 */
-/obj/structure/necromorph/growth/special/proc/pulse_area(mob/camera/necromorph/growth/pulsing_master, claim_range = 10, pulse_range = 3, expand_range = 2)
+/obj/structure/necromorph/growth/special/proc/pulse_area(mob/camera/marker/pulsing_master, claim_range = 10, pulse_range = 3, expand_range = 2)
 	if(QDELETED(pulsing_master))
 		pulsing_master = master
 	Be_Pulsed()
@@ -72,6 +72,8 @@
 						expanded = TRUE
 		if(distance <= pulse_range)
 			B.Be_Pulsed()
+/*
+	Remove Old Blob Spawn Method
 
 /obj/structure/necromorph/growth/special/proc/produce_slashers()
 	if(brute)
@@ -86,6 +88,7 @@
 		BS.master = master
 		BS.update_icons()
 		master.marker_mobs.Add(BS)
+*/
 
 // /obj/structure/necromorph/growth/special/proc/produce_spores()
 // 	if(brute)

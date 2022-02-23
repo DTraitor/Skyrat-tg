@@ -3,3 +3,5 @@
 - [] Replace the Normal "Marker" with the seperated Growth folder for corruption. Growth is the name of all biological structures. The system will be known as corruption.
 - [] Remove all control of Core from all files and move into singular Marker File. Biomass / Add_Points should be controlled by the biomass controller.
 - [] Remove all reference from Marker in Growth and Corruption natively, needs to be moved to one controlled file.
+- [] Remove "Growths_Legit"
+- [] Set a master Overlay value for structures.

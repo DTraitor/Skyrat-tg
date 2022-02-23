@@ -61,7 +61,7 @@
 	speak_emote = list("hisses")
 
 
-/mob/living/simple_animal/hostile/necromorph/slasher/Initialize(mapload, obj/structure/marker/special/linked_node)
+/mob/living/simple_animal/hostile/necromorph/slasher/Initialize(mapload, obj/structure/necromorph/growth/special/linked_node)
 	. = ..()
 	AddElement(/datum/element/simple_flying)
 	if(istype(linked_node))

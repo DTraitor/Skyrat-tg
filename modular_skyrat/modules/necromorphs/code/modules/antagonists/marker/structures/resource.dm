@@ -14,11 +14,11 @@
 
 /obj/structure/necromorph/growth/special/resource/creation_action()
 	if(master)
-		master.resource_markers += src
+		master.resource_growths += src
 
 /obj/structure/necromorph/growth/special/resource/Destroy()
 	if(master)
-		master.resource_markers -= src
+		master.resource_growths -= src
 	return ..()
 
 /obj/structure/necromorph/growth/special/resource/Be_Pulsed()
@@ -28,6 +28,6 @@
 	flick("marker_resource_glow", src)
 	if(master)
 		master.add_points(MARKER_RESOURCE_GATHER_AMOUNT)
-		resource_delay = world.time + MARKER_RESOURCE_GATHER_DELAY + master.resource_markers.len * MARKER_RESOURCE_GATHER_ADDED_DELAY //4 seconds plus a quarter second for each resource marker the master has
+		resource_delay = world.time + MARKER_RESOURCE_GATHER_DELAY + master.resource_growths.len * MARKER_RESOURCE_GATHER_ADDED_DELAY //4 seconds plus a quarter second for each resource marker the master has
 	else
 		resource_delay = world.time + MARKER_RESOURCE_GATHER_DELAY

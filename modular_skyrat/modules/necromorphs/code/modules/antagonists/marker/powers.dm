@@ -57,7 +57,7 @@
 	else
 		var/obj/structure/necromorph/growth/special/core/core = new(get_turf(src), src, 1)
 		core.master = src
-		markers_legit += src
+		growths_legit += src
 		marker_core = core
 		core.update_appearance()
 	placed = TRUE

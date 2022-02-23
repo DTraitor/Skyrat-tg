@@ -36,13 +36,13 @@
 
 /obj/structure/necromorph/growth/special/node/creation_action()
 	if(master)
-		master.node_markers += src
+		master.node_growths += src
 
 /obj/structure/necromorph/growth/special/node/Destroy()
 	GLOB.growth_nodes -= src
 	STOP_PROCESSING(SSobj, src)
 	if(master)
-		master.node_markers -= src
+		master.node_growths -= src
 	return ..()
 
 /obj/structure/necromorph/growth/special/node/process(delta_time)

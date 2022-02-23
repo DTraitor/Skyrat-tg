@@ -17,7 +17,7 @@
 
 /obj/structure/necromorph/growth/special/factory/creation_action()
 	if(master)
-		master.factory_markers += src
+		master.factory_growths += src
 
 /obj/structure/necromorph/growth/special/factory/Destroy()
 	for(var/mob/living/simple_animal/hostile/necromorph/slasher in slashers)
@@ -29,7 +29,7 @@
 		brute.throw_alert("nofactory", /atom/movable/screen/alert/nofactory)
 	slashers = null
 	if(master)
-		master.factory_markers -= src
+		master.factory_growths -= src
 	return ..()
 
 /obj/structure/necromorph/growth/special/factory/Be_Pulsed()

@@ -55,9 +55,9 @@ GLOBAL_LIST_EMPTY(corruption)
 
 	/// A list of all marker structures - REVISION: Switch from "markers" to "growth"
 	var/list/all_growths = list()
-	var/list/resource_markers = list()
-	var/list/factory_markers = list()
-	var/list/node_markers = list()
+	var/list/resource_growths = list()
+	var/list/factory_growths = list()
+	var/list/node_growths = list()
 	var/list/bioluminescence_corruption = list()
 
 	var/last_reroll_time = 0 //time since we last rerolled, used to give free rerolls
@@ -65,7 +65,7 @@ GLOBAL_LIST_EMPTY(corruption)
 	var/placed = FALSE
 	var/manualplace_min_time = OVERMIND_STARTING_MIN_PLACE_TIME // Some time to get your bearings
 	var/autoplace_max_time = OVERMIND_STARTING_AUTO_PLACE_TIME // Automatically place the core in a random spot
-	var/list/markers_legit = list()
+	var/list/growths_legit = list()
 	var/max_count = 0 //The biggest it got before death
 	var/markerwincount = OVERMIND_WIN_CONDITION_AMOUNT //DEPRECATED - NECROMORPHS DONT WIN BY SIZE.
 	var/victory_in_progress = FALSE
@@ -131,7 +131,7 @@ GLOBAL_LIST_EMPTY(corruption)
 				place_marker_core(1)
 		else
 			qdel(src)
-	else if(!victory_in_progress && (markers_legit.len >= markerwincount))
+	else if(!victory_in_progress && (growths_legit.len >= markerwincount))
 		victory_in_progress = TRUE
 		priority_announce("Biohazard has reached critical mass. Station loss is imminent.", "Biohazard Alert")
 		set_security_level("delta")
@@ -139,10 +139,10 @@ GLOBAL_LIST_EMPTY(corruption)
 		marker_points = INFINITY
 		addtimer(CALLBACK(src), 450)
 
-	if(!victory_in_progress && max_count < markers_legit.len)
-		max_count = markers_legit.len
+	if(!victory_in_progress && max_count < growths_legit.len)
+		max_count = growths_legit.len
 
-	if(announcement_time && (world.time >= announcement_time || markers_legit.len >= announcement_size) && !has_announced)
+	if(announcement_time && (world.time >= announcement_time || growths_legit.len >= announcement_size) && !has_announced)
 		alert_sound_to_playing(sound('modular_skyrat/modules/alerts/sound/alert1.ogg'), override_volume = TRUE)
 		priority_announce("Automated air filtration screeing systems have flagged an unknown pathogen in the ventilation systems, quarantine is in effect.", "Level-1 Viral Biohazard Alert", ANNOUNCER_MUTANTS)
 
@@ -153,10 +153,11 @@ GLOBAL_LIST_EMPTY(corruption)
 	for(var/obj/structure/necromorph/growth/growth_structure as anything in all_growths)
 		growth_structure.master = null
 	all_growths = null
-	resource_markers = null
-	factory_markers = null
-	node_markers = null
-	marker_mobs = null
+	resource_growths = null
+	factory_growths = null
+	node_growths = null
+	marker_mobs = null // REPLACE WITH isNecromorph Check
+
 	bioluminescence_corruption = null
 	GLOB.master_signals -= src
 
@@ -217,7 +218,7 @@ GLOBAL_LIST_EMPTY(corruption)
 	var/rendered = span_big("<font color=\"#EE4000\"><b>\[Marker Telepathy\] [name]()</b> [message_a]</font>")
 
 	for(var/mob/M in GLOB.mob_list)
-		if(ismarkermaster(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
+		if(ismarkerovermind(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
 			to_chat(M, rendered)
 		if(isobserver(M))
 			var/link = FOLLOW_LINK(M, src)
@@ -226,12 +227,12 @@ GLOBAL_LIST_EMPTY(corruption)
 /mob/camera/marker/marker_act(obj/structure/necromorph/growth/B)
 	return
 
-/mob/camera/marker/get_status_tab_items()
+/mob/camera/marker/get_status_tab_items() // Replace with Biomass, # of Necromorphs, % Corrupted, Marker Integrity, Living Crew
 	. = ..()
 	if(marker_core)
 		. += "Core Health: [marker_core.get_integrity()]"
 		. += "Power Stored: [marker_points]/[max_marker_points]"
-		. += "Markers to Win: [markers_legit.len]/[markerwincount]"
+		. += "Markers to Win: [growths_legit.len]/[markerwincount]"
 	if(!placed)
 		if(manualplace_min_time)
 			. +=  "Time Before Manual Placement: [max(round((manualplace_min_time - world.time)*0.1, 0.1), 0)]"
@@ -253,7 +254,7 @@ GLOBAL_LIST_EMPTY(corruption)
 
 /mob/camera/marker/mind_initialize()
 	. = ..()
-	var/datum/antagonist/necromorph/growth/B = mind.has_antag_datum(/datum/antagonist/marker)
+	var/datum/antagonist/marker/B = mind.has_antag_datum(/datum/antagonist/marker)
 	if(!B)
 		mind.add_antag_datum(/datum/antagonist/marker)
 

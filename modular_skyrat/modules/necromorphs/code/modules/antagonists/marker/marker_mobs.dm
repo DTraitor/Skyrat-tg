@@ -57,7 +57,7 @@
 /mob/living/simple_animal/hostile/necromorph/get_status_tab_items()
 	. = ..()
 	if(master)
-		. += "Markers to Win: [master.markers_legit.len]/[master.markerwincount]"
+		. += "Markers to Win: [master.growths_legit.len]/[master.markerwincount]"
 
 /mob/living/simple_animal/hostile/necromorph/marker_act(obj/structure/necromorph/growth/B)
 	if(stat != DEAD && health < maxHealth)
@@ -87,7 +87,7 @@
 	var/spanned_message = say_quote(message)
 	var/rendered = "<font color=\"#EE4000\"><b>\[Marker Telepathy\] [real_name]</b> [spanned_message]</font>"
 	for(var/M in GLOB.mob_list)
-		if(ismaster(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
+		if(ismarkerovermind(M) || istype(M, /mob/living/simple_animal/hostile/necromorph))
 			to_chat(M, rendered)
 		if(isobserver(M))
 			var/link = FOLLOW_LINK(M, src)
