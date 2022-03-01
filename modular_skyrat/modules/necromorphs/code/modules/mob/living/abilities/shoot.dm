@@ -5,40 +5,37 @@
 /*
 	Generic Shoot Extension. Make subtypes for things which shouldn't share a cooldown
 */
-/datum/extension/shoot
+/obj/effect/proc_holder/necro
+	name = "Base Necro Ability"
+	panel = "Abilities"
+	desc = "Tasty"
+	ranged_mousepointer = 'icons/effects/mouse_pointers/supplypod_target.dmi'
+	action_icon = 'icons/mob/actions/actions_clown.dmi'
+	action_icon_state = "rustle"
+	action_background_icon_state = "bg_fugu"
+	var/cooldown = 1 SECONDS
+	COOLDOWN_DECLARE(cooldown_timer)
+
+/obj/effect/proc_holder/necro/Click(location, control, params)
+	var/_cooldown = COOLDOWN_TIMELEFT(src, cooldown_timer)
+	if(_cooldown)
+		to_chat(usr, span_notice("[name] is cooling down. You can use it again in [_cooldown % 10] seconds."))
+		return FALSE
+	return TRUE
+
+/obj/effect/proc_holder/necro/shoot
 	name = "Shoot"
-	base_type = /datum/extension/shoot
-	expected_type = /atom
-	flags = EXTENSION_FLAG_IMMEDIATE
-
-
-	var/status = SHOOT_STATUS_READY
-	var/atom/user
-	var/atom/target
+	desc = "Replace me (please!)"
+	action_icon = 'icons/mob/actions/actions_clown.dmi'
+	action_icon_state = "rustle"
 	var/projectile_type
 	var/base_accuracy
 	var/list/dispersion
 	var/total_shots
 	var/windup_time
 	var/fire_sound
-	var/power = 1
-	var/cooldown = 1 SECOND
-	var/nomove	=	0
-
-	var/started_at
-	var/stopped_at
-
-	var/ongoing_timer
-
-	//Data generated during runtime
-	var/shot_num = 1
-
-	//When false, this extension is deleted when cooldown finishes
-	//If true, the extension will remain, and can be used to fire repeqatedly without remaking it
-	var/persist = FALSE
-
-
-	var/vector2/starting_pixel_offset = null
+	var/nomove = 0
+	var/vector2/starting_pixel_offset
 
 /*
 	Vars expected:
@@ -53,10 +50,16 @@
 	nomove: optional, default false. If true, the user can't move during windup. If a number, the user can't move during windup and for that long after firing
 */
 
-/datum/extension/shoot/New(var/atom/user, var/atom/target, var/projectile_type, var/accuracy = 0, var/dispersion = 0, var/num = 1, var/windup_time = 0, var/fire_sound = null, var/nomove = FALSE, var/cooldown = 0,var/vector2/_starting_pixel_offset)
+/obj/effect/proc_holder/necro/shoot/Initialize(
+		mapload,
+		mob/living/new_owner,
+		projectile_type, accuracy = 0,
+		dispersion = 0, num = 1,
+		windup_time = 0,
+		fire_sound, nomove = FALSE,
+		cooldown = 0,
+		vector2/_starting_pixel_offset)
 	.=..()
-	src.user = user
-	src.target = target
 	src.projectile_type = projectile_type
 	src.base_accuracy = accuracy
 	src.dispersion = dispersion
@@ -69,170 +72,83 @@
 	if (_starting_pixel_offset)
 		starting_pixel_offset = _starting_pixel_offset
 
-	if (!persist)
-		status = SHOOT_STATUS_PREFIRE
-		spawn()
-			start()
-
-
-
-
-
-
-//The repeat subtype is designed to not be deleted after firing and cooling down. instead the extension remains
-//Call fire repeatedly to make it fire again
-/datum/extension/shoot/repeat
-	persist = TRUE
-
-/datum/extension/shoot/repeat/proc/fire(var/atom/newtarget)
-	if (!can_fire())
-		return FALSE
-
-	status = SHOOT_STATUS_PREFIRE
-	target = newtarget
-	spawn()
-		start()
-
+/obj/effect/proc_holder/necro/shoot/Click()
+	if(!..())
+		return
+	var/message
+	if(active)
+		message = span_notice("You no longer prepare to shoot something.")
+		remove_ranged_ability(message)
+	else
+		message = span_notice("You prepare to shoot something. <B>Left-click your target to shoot!</B>")
+		add_ranged_ability(usr, message, TRUE)
 	return TRUE
 
+/obj/effect/proc_holder/necro/shoot/InterceptClickOn(mob/living/caller, params, atom/target)
+	if(..())
+		return
 
-
-
-/datum/extension/shoot/proc/start()
-	status = SHOOT_STATUS_PREFIRE
-	started_at	=	world.time
-
-	var/mob/living/L
-	var/target_zone = BP_CHEST
-	if (isliving(user))
-		L = user
-		target_zone = L.hud_used.zone_sel.selecting
-	else
-		target_zone = ran_zone()
+	if(ranged_ability_user.incapacitated() || COOLDOWN_TIMELEFT(src, cooldown_timer))
+		remove_ranged_ability()
+		return
 
 	//First of all, if nomove is set, lets paralyse the user
-	if (nomove && L)
+	if(nomove)
 		var/stoptime = windup_time
-		if (isnum(nomove))
+		if(isnum(nomove))
 			stoptime += nomove
 
-		if (stoptime)
-			L.set_move_cooldown(stoptime)
+		if(stoptime)
+			ranged_ability_user.set_move_cooldown(stoptime) // Need to figure out how to set movement cooldown
 
 	//Now lets windup the shot(s)
-	if (windup_time)
+	if(windup_time)
 
 		windup_animation()
 
 	fire_animation()
 
 	//And start the main event
+	var/target_zone = ranged_ability_user.zone_selected
 	var/turf/targloc = get_turf(target)
-	status = SHOOT_STATUS_FIRING
-	for(shot_num in 1 to total_shots)
-		var/obj/item/projectile/P = new projectile_type(user.loc)
-		if (starting_pixel_offset)
+	for(var/shot_num in 1 to total_shots)
+		var/obj/projectile/P = new projectile_type(ranged_ability_user.loc)
+		if(starting_pixel_offset)
 			P.pixel_x += starting_pixel_offset.x
 			P.pixel_y += starting_pixel_offset.y
 		P.accuracy += base_accuracy
-		P.dispersion = get_dispersion()
-		P.firer = user
-		P.shot_from = user
+		P.dispersion = get_dispersion(shot_num)
+		P.firer = ranged_ability_user
+		P.def_zone = target_zone
+		P.fired_from = ranged_ability_user
 
-		if (QDELETED(target))
-			P.launch(targloc, target_zone)
+		if(QDELETED(target))
+			P.fire(, targloc) // How does it work? How do I calculate angle?
 		else
-			P.launch(target, target_zone)
+			P.fire(, target) // How does it work? How do I calculate angle?
 
-		if (fire_sound)
-			if (islist(fire_sound))
-				playsound(user, pick(fire_sound), VOLUME_MID, 1)
+		if(fire_sound)
+			if(islist(fire_sound))
+				playsound(ranged_ability_user, pick(fire_sound), VOLUME_MID, 1)
 			else
-				playsound(user, fire_sound, VOLUME_MID, 1)
+				playsound(ranged_ability_user, fire_sound, VOLUME_MID, 1)
+	remove_ranged_ability()
+	COOLDOWN_START(src, cooldown_timer, cooldown)
+	return TRUE
 
-	stop()
+/obj/effect/proc_holder/necro/shoot/on_lose(mob/living/carbon/user)
+	remove_ranged_ability()
 
 //If its a single number, just return that
-/datum/extension/shoot/proc/get_dispersion()
+/obj/effect/proc_holder/necro/shoot/proc/get_dispersion(shot_num)
 	if (isnum(dispersion))
 		return dispersion
 
 	if (islist(dispersion))
 		return dispersion[shot_num]
 
-
-/datum/extension/shoot/proc/windup_animation()
+/obj/effect/proc_holder/necro/shoot/proc/windup_animation()
 	sleep(windup_time)
 
-/datum/extension/shoot/proc/fire_animation()
+/obj/effect/proc_holder/necro/shoot/proc/fire_animation()
 	return
-
-/datum/extension/shoot/proc/stop()
-	status = SHOOT_STATUS_COOLING
-	deltimer(ongoing_timer)
-	stopped_at = world.time
-	ongoing_timer = addtimer(CALLBACK(src, /datum/extension/shoot/proc/finish_cooldown), cooldown, TIMER_STOPPABLE)
-
-
-/datum/extension/shoot/proc/finish_cooldown()
-	status = SHOOT_STATUS_READY
-	deltimer(ongoing_timer)
-	if (!persist)
-		remove_extension(holder, base_type)
-
-
-/datum/extension/shoot/proc/get_cooldown_time()
-	var/elapsed = world.time - stopped_at
-	return cooldown - elapsed
-
-
-
-
-
-/***********************
-	Safety Checks
-************************/
-//Access Proc
-/atom/proc/can_shoot(var/error_messages = TRUE, var/subtype = /datum/extension/shoot)
-	if (isliving(src))
-		var/mob/living/L = src
-		if (L.incapacitated())
-			return FALSE
-
-	var/datum/extension/shoot/E = get_extension(src, subtype)
-
-	if(istype(E))
-		if (error_messages)
-			if (E.stopped_at)
-				to_chat(src, SPAN_NOTICE("[E.name] is cooling down. You can use it again in [E.get_cooldown_time() /10] seconds"))
-			else
-				to_chat(src, SPAN_NOTICE("You're already shooting"))
-		return FALSE
-
-	return TRUE
-
-
-//Only used for repeat shooting
-/datum/extension/shoot/proc/can_fire()
-	if (status != SHOOT_STATUS_READY)
-		return FALSE
-
-	return TRUE
-
-/***********************
-	Using
-************************/
-/atom/movable/proc/shoot_ability(var/subtype = /datum/extension/shoot, var/atom/target, var/projectile_type, var/accuracy = 100, var/dispersion = 0, var/num = 1, var/windup_time = 0, var/fire_sound = null, var/nomove = FALSE, var/cooldown = 0, var/vector2/starting_pixel_offset)
-	//First of all, lets check if we're currently able to shoot
-	if (!can_shoot(TRUE, subtype))
-		return FALSE
-
-	//Can't shoot yourself
-	if (target == src)
-		return FALSE
-
-	//Ok we've passed all safety checks, let's commence charging!
-	//We simply create the extension on the movable atom, and everything works from there
-	set_extension(src, subtype, target, projectile_type, accuracy, dispersion, num, windup_time, fire_sound, nomove, cooldown, starting_pixel_offset)
-
-	return TRUE

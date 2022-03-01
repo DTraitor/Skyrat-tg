@@ -5331,6 +5331,7 @@
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\gallop.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\leap.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\leaper_tailstrike.dm"
+#include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\shoot.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\wallrun.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\resource\resource.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\carbon\bodyparts\head.dm"
