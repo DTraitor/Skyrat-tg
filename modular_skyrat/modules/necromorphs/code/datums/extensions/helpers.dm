@@ -17,5 +17,5 @@
 				return FALSE	//Without override, we fail on any existing mounts
 
 			//Unmount it
-			mount.unmount()
+			mount.dismount()
 	return TRUE

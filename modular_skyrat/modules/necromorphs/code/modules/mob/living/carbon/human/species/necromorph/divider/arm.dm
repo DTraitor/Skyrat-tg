@@ -44,7 +44,7 @@
 
 /mob/living/simple_animal/necromorph/divider_component/arm/Initialize()
 	.=..()
-	set_extension(src, /datum/extension/wallrun)
+	AddComponent(/datum/component/wallrun)
 
 /mob/living/simple_animal/necromorph/divider_component/arm/charge_impact(var/datum/extension/charge/leap/charge)
 	shake_camera(charge.user,5,3)
@@ -60,7 +60,7 @@
 		WP.attach_mob_downed		=	TRUE	//Can this be/remain attached to mobs that are lying down?
 		WP.attach_mob_dead	=	FALSE	//Can this be/remain attached to mobs that are dead?
 		charge.do_winddown_animation = FALSE
-		mount_to_atom(src, charge.last_obstacle, /datum/extension/mount/parasite/arm, WP)
+		mount_to_atom(src, charge.last_obstacle, /datum/component/mount/parasite/arm, WP)
 	..()
 
 
@@ -68,10 +68,10 @@
 
 
 //The divider arm has an additional effect, the target is steered around randomly
-/datum/extension/mount/parasite/arm
+/datum/component/mount/parasite/arm
 	damage = 8
 
-/datum/extension/mount/parasite/arm/Process()
+/datum/component/mount/parasite/arm/Process()
 	.=..()
 	//if (.)
 		//var/mob/living/victim = mountpoint

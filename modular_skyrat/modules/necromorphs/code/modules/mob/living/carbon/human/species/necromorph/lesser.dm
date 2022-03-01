@@ -95,19 +95,19 @@
 	.=..()
 
 //Parasite Extension: The mob latches onto another mob and periodically bites it for some constant damage
-/datum/extension/mount/parasite
+/datum/component/mount/parasite
 	var/damage = 5
 	var/damage_chance = 30
 
 	var/base_offset_y = 16
 
-/datum/extension/mount/parasite/on_mount()
+/datum/component/mount/parasite/on_mount()
 	.=..()
 	START_PROCESSING(SSprocessing, src)
 
-	var/mob/living/biter = mountee
+	var/mob/living/biter = parent
 	spawn(0.5 SECONDS)
-		if(!QDELETED(biter) && !QDELETED(src) && mountpoint && mountee)
+		if(!QDELETED(biter) && !QDELETED(src) && mountpoint && biter)
 			//Lets put the parasite somewhere nice looking on the mob
 			var/new_rotation = rand(-70, 70)
 			var/vector2/attach_offset = biter.get_icon_size()
@@ -135,15 +135,15 @@
 
 
 
-/datum/extension/mount/parasite/on_dismount()
+/datum/component/mount/parasite/on_dismount()
 	.=..()
 	STOP_PROCESSING(SSprocessing, src)
-	var/mob/living/biter = mountee
+	var/mob/living/biter = parent
 	if(biter)
 		biter.animate_to_default()
 
-/datum/extension/mount/parasite/proc/safety_check()
-	var/mob/living/biter = mountee
+/datum/component/mount/parasite/proc/safety_check()
+	var/mob/living/biter = parent
 	var/mob/living/victim = mountpoint
 
 	if(!istype(biter) || QDELETED(biter))
@@ -166,12 +166,12 @@
 
 	return TRUE
 
-/datum/extension/mount/parasite/Process()
+/datum/component/mount/parasite/Process()
 	if(!safety_check())
 		dismount()
 		return PROCESS_KILL
 
-	var/mob/living/biter = mountee
+	var/mob/living/biter = parent
 	//var/mob/living/victim = mountpoint
 
 	//If the biter is being grabbed, it doesnt fall off, but it can't bite either

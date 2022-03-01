@@ -15,7 +15,7 @@
 	Extension to manage things
 */
 /datum/component/mount
-	dupe_type = /datum/extension/mount
+	dupe_type = /datum/component/mount
 	var/atom/mountpoint
 	var/vector2/offset
 	var/datum/mount_parameters/mount_params
@@ -171,15 +171,15 @@
 
 //Helpers
 /atom/proc/is_mounted()
-	var/datum/extension/mount/M = get_extension(src, /datum/extension/mount)
+	var/datum/component/mount/M = GetComponent(/datum/component/mount)
 	if (M)
 		return M
 
 	return FALSE
 
-/atom/proc/on_mount(datum/extension/mount/ME)
+/atom/proc/on_mount(datum/component/mount/ME)
 
-/atom/proc/on_dismount(datum/extension/mount/ME)
+/atom/proc/on_dismount(datum/component/mount/ME)
 
 /datum/component/mount/self_delete
 	face_away_from_mountpoint = TRUE
@@ -208,12 +208,12 @@
 /*
 	Attaches the subject to mountpoint
 */
-/proc/mount_to_atom(var/atom/movable/subject, var/atom/mountpoint, var/mount_type = /datum/extension/mount, var/datum/mount_parameters/WP = new(), var/override = TRUE)
+/proc/mount_to_atom(var/atom/movable/subject, var/atom/mountpoint, var/mount_type = /datum/component/mount, var/datum/mount_parameters/WP = new(), var/override = TRUE)
 	//If we're already doing a wallrun, remove it, we are switching to something new
 	//Future TODO: Refactor these to use the same system
 	if (!subject.handle_existing_mounts(override))
 		return FALSE
-	return set_extension(subject, mount_type, mountpoint, WP)
+	return subject.AddComponent(mount_type, mountpoint, WP)
 
 
 
