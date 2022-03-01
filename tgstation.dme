@@ -5257,6 +5257,7 @@
 #include "modular_skyrat\modules\necromorphs\__DEFINES\necromorph.dm"
 #include "modular_skyrat\modules\necromorphs\__DEFINES\signals.dm"
 #include "modular_skyrat\modules\necromorphs\__DEFINES\subsystems.dm"
+#include "modular_skyrat\modules\necromorphs\__DEFINES\dcs\signals\signals_atom\signals_mob_main.dm"
 #include "modular_skyrat\modules\necromorphs\_global_vars\mapping.dm"
 #include "modular_skyrat\modules\necromorphs\_global_vars\misc.dm"
 #include "modular_skyrat\modules\necromorphs\_global_vars\lists\crew.dm"

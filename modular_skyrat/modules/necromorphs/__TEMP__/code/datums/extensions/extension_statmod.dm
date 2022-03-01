@@ -10,94 +10,55 @@
 	Movespeed (multiplicative)			STATMOD_MOVESPEED_MULTIPLICATIVE		A multiplier. 1 = no change, 2 = double, etc. Must be > 0
 	Incoming Damage						STATMOD_INCOMING_DAMAGE_MULTIPLICATIVE	A multiplier. 1 = no change, 2 = double, etc. Must be > 0
 	Ranged Accuracy						STATMOD_RANGED_ACCURACY					A flat number of percentage points
-	Vision Range						STATMOD_VIEW_RANGE					An integer number of tiles to add/remove from vision range
+	Vision Range						STATMOD_VIEW_RANGE						An integer number of tiles to add/remove from vision range
 	Evasion								STATMOD_EVASION							An number of percentage points which will be additively added to evasion, negative allowed
 	Scale								STATMOD_SCALE							A percentage value, 0=no change, 1 = +100%, etc. Negative allowed
 	Max Health							STATMOD_HEALTH							A flat value which is added or removed
-	Conversion Compatibility			STATMOD_CONVERSION_COMPATIBILITY			A flat value which is added or removed
-	Layer								STATMOD_LAYER							A flat value, the highest one is used and all others are ignored. Note that any specified value, even if lower, will override the base layer
+	Conversion Compatibility			STATMOD_CONVERSION_COMPATIBILITY		A flat value which is added or removed
 */
 
 
 
 //This list is in the following format:
-//Define = list (update_proc)
-GLOBAL_LIST_INIT(statmods, list(
-STATMOD_MOVESPEED_ADDITIVE = list(/datum/proc/update_movespeed_factor),
-STATMOD_MOVESPEED_MULTIPLICATIVE = list(/datum/proc/update_movespeed_factor),
-STATMOD_INCOMING_DAMAGE_MULTIPLICATIVE = list(/datum/proc/update_incoming_damage_factor),
-STATMOD_RANGED_ACCURACY = list(/datum/proc/update_ranged_accuracy_factor),
-STATMOD_ATTACK_SPEED = list(/datum/proc/update_attack_speed),
-STATMOD_EVASION = list(/datum/proc/update_evasion),
-STATMOD_VIEW_RANGE = list(/datum/proc/update_vision_range),
-STATMOD_SCALE	=	list(/datum/proc/update_scale),
-STATMOD_HEALTH	=	list(/datum/proc/update_max_health),
-STATMOD_LAYER	=	list(/datum/proc/reset_layer)
+//Define = update_proc
+GLOBAL_LIST_INIT(statmod_update_procs, list(
+STATMOD_MOVESPEED_ADDITIVE = /datum/proc/update_movespeed_factor,
+STATMOD_MOVESPEED_MULTIPLICATIVE = /datum/proc/update_movespeed_factor,
+STATMOD_INCOMING_DAMAGE_MULTIPLICATIVE = /datum/proc/update_incoming_damage_factor,
+STATMOD_RANGED_ACCURACY = /datum/proc/update_ranged_accuracy_factor,
+STATMOD_ATTACK_SPEED = /datum/proc/update_attack_speed,
+STATMOD_EVASION = /datum/proc/update_evasion,
+STATMOD_VIEW_RANGE = /datum/proc/update_vision_range,
+STATMOD_SCALE = /datum/proc/update_scale,
+STATMOD_HEALTH = /datum/proc/update_max_health,
 //Conversion compatibility doesn't get an entry here, its only used by infector conversions
 ))
 
-/datum/extension
-	var/auto_register_statmods = TRUE
-	var/list/statmods = null
+/datum/component/statmods
+	dupe_mode = COMPONENT_DUPE_UNIQUE
+	var/list/statmods
 
-/datum/extension/proc/register_statmods(var/update = TRUE)
-	for (var/modtype in statmods)
-		register_statmod(modtype, update)
+/datum/component/statmods/Initialize(...)
+	.=..()
+	RegisterSignal(parent, COMSIG_REGISTER_STATS, ./proc/register_statmods)
+	RegisterSignal(parent, COMSIG_UNREGISTER_STATS, ./proc/unregister_statmods)
 
-/datum/extension/proc/unregister_statmods()
-	for (var/modtype in statmods)
-		unregister_statmod(modtype)
+/datum/component/statmods/proc/register_statmods(list/_statmods)
+	for(var/modtype in _statmods)
+		LAZYADDASSOC(statmods, modtype, _statmods[modtype])
+		call(parent, GLOB.statmod_update_procs[modtype])()
+
+/datum/component/statmods/proc/unregister_statmods(list/_statmods)
+	for(var/modtype in _statmods)
+		LAZYREMOVEASSOC(statmods, modtype, _statmods[modtype])
+		call(parent, GLOB.statmod_update_procs[modtype])()
 
 //Trigger all relevant update procs without changing registration
-/datum/extension/proc/update_statmods()
-	var/mob/M = holder
-	if (!istype(M))
-		return
-	for (var/modtype in statmods)
-		var/list/data = GLOB.statmods[modtype]
-		var/update_proc = data[1]
-		call(M, update_proc)()
+/datum/component/statmods/proc/update_statmods()
+	for(var/modtype in statmods)
+		call(parent, GLOB.statmod_update_procs[modtype])()
 
-/datum/extension/proc/register_statmod(var/modtype, var/update = TRUE)
-	//Currently only supported for mobs
-	var/mob/M = holder
-	if (!istype(M))
-		return
-
-
-	//Initialize the list
-	if (!LAZYACCESS(M.statmods, modtype))
-		//This will create the statmods list AND insert a key/value pair for modtype/list()
-		LAZYASET(M.statmods, modtype, list())
-
-	LAZYDISTINCTADD(M.statmods[modtype], src)
-
-	//Now lets make them update
-	if (update)
-		var/list/data = GLOB.statmods[modtype]
-		var/update_proc = data[1]
-		call(M, update_proc)()//And call it
-
-/datum/extension/proc/unregister_statmod(var/modtype)
-	//Currently only supported for mobs
-	var/mob/M = holder
-	if (!istype(M))
-		return
-
-	//If it doesn't exist we dont need to do anything
-	if (!LAZYACCESS(M.statmods, modtype))
-		return
-
-
-
-	LAZYAMINUS(M.statmods,modtype, src)
-	//Now lets make them update
-	var/list/data = GLOB.statmods[modtype]
-	var/update_proc = data[1]
-	call(M, update_proc)()//And call it
-
-
-/datum/extension/proc/get_statmod(var/modtype)
+/datum/component/statmods/proc/get_statmod(var/modtype)
 	return LAZYACCESS(statmods, modtype)
 
 
@@ -292,61 +253,3 @@ STATMOD_LAYER	=	list(/datum/proc/reset_layer)
 	return species.total_health
 
 
-
-//Layer
-
-//Layer is an atomic property so the datum procs are stubs
-/datum/proc/reset_layer()
-
-/atom/reset_layer()
-	var/newlayer = get_base_layer()
-	var/modified_layer
-	for (var/datum/extension/E as anything in LAZYACCESS(statmods, STATMOD_LAYER))
-		var/value = E.get_statmod(STATMOD_LAYER)
-		if (isnull(modified_layer) || value > modified_layer)
-			modified_layer = value
-
-	layer = (modified_layer ? modified_layer : newlayer)
-
-
-/mob/reset_layer()
-	var/newlayer
-	if(lying)
-		newlayer = get_base_lying_layer()
-	else
-		newlayer = get_base_layer()
-
-	var/modified_layer
-	for (var/datum/extension/E as anything in LAZYACCESS(statmods, STATMOD_LAYER))
-		var/value = E.get_statmod(STATMOD_LAYER)
-		if (isnull(modified_layer) || value > modified_layer)
-			modified_layer = value
-
-	layer = (modified_layer ? modified_layer : newlayer)
-
-
-
-
-
-/datum/proc/get_base_layer()
-
-/atom/get_base_layer()
-	return initial(layer)
-
-
-/mob/proc/get_base_lying_layer()
-	return LYING_MOB_LAYER
-
-
-
-/mob/living/carbon/human/get_base_layer()
-	return species.layer
-
-/mob/living/carbon/human/get_base_lying_layer()
-	return species.layer_lying
-
-
-//Legacy use, maybe needs refactoring, although we don't usually change planes on atoms anymore
-/atom/proc/reset_plane_and_layer()
-	plane = initial(plane)
-	reset_layer()
