@@ -4,12 +4,18 @@
 	There will be colon access, they share proc and variable names
 */
 /atom/proc/handle_existing_mounts(var/override = TRUE)
-	var/list/matches = get_extensions_of_types(src, list(/datum/extension/wallrun, /datum/extension/mount))
-	for (var/datum/extension/E in matches)
-		if (E:mountpoint) //If set, this means it's mounted
+	for(var/datum/component/wallrun/wallrun as anything in GetComponents(/datum/component/wallrun))
+		if(wallrun.mountpoint) //If set, this means it's mounted
+			if(!override)
+				return FALSE	//Without override, we fail on any existing mounts
+
+			//Unmount it
+			wallrun.unmount()
+	for(var/datum/component/mount/mount as anything in GetComponents(/datum/component/mount))
+		if (mount.mountpoint) //If set, this means it's mounted
 			if (!override)
 				return FALSE	//Without override, we fail on any existing mounts
 
 			//Unmount it
-			E:unmount()
+			mount.unmount()
 	return TRUE
