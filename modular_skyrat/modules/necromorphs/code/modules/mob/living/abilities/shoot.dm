@@ -116,8 +116,8 @@
 		if(starting_pixel_offset)
 			P.pixel_x += starting_pixel_offset.x
 			P.pixel_y += starting_pixel_offset.y
-		P.accuracy += base_accuracy
-		P.dispersion = get_dispersion(shot_num)
+		P.accuracy += base_accuracy // How to to implement this two?
+		P.dispersion = get_dispersion(shot_num) // How to to implement this two?
 		P.firer = ranged_ability_user
 		P.def_zone = target_zone
 		P.fired_from = ranged_ability_user
