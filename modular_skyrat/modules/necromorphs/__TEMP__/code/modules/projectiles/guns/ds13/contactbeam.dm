@@ -311,6 +311,6 @@
 			AM.apply_push_impulse_from(location, 250, 0.3)
 
 		for (var/i in 1 to 4)
-			new /obj/effect/effect/expanding_circle(location, 0.25, 1. SECONDS)
+			new /obj/effect/expanding_circle(location, 0.25, 1. SECONDS)
 			sleep(rand_between(2,4))
 		qdel(src)

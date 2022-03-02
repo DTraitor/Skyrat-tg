@@ -439,13 +439,13 @@ Taunt has a very long possible duration, but it will terminate early if the hunt
 	play_species_audio(src, SOUND_SHOUT_LONG, VOLUME_MAX, 1, 3)
 	set_extension(src, /datum/extension/taunt)
 	//Lets do some cool effects
-	var/obj/effect/effect/expanding_circle/EC = new /obj/effect/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
+	var/obj/effect/expanding_circle/EC = new /obj/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
 	EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 	spawn(4)
-		EC = new /obj/effect/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
+		EC = new /obj/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
 		EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 		spawn(4)
-			EC = new /obj/effect/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
+			EC = new /obj/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
 			EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 
 	return TRUE

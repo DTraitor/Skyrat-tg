@@ -49,13 +49,13 @@
 	addtimer(CALLBACK(src, /datum/extension/sense/proc/finish_cooldown), cooldown)
 
 	//Lets do some cool effects
-	var/obj/effect/effect/expanding_circle/EC = new /obj/effect/effect/expanding_circle(user.loc, 2, 2 SECOND)
+	var/obj/effect/expanding_circle/EC = new /obj/effect/expanding_circle(user.loc, 2, 2 SECOND)
 	EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 	spawn(4)
-		EC = new /obj/effect/effect/expanding_circle(user.loc, 2, 2 SECOND)
+		EC = new /obj/effect/expanding_circle(user.loc, 2, 2 SECOND)
 		EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 		spawn(4)
-			EC = new /obj/effect/effect/expanding_circle(user.loc, 2, 2 SECOND)
+			EC = new /obj/effect/expanding_circle(user.loc, 2, 2 SECOND)
 			EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 
 	var/found = null
