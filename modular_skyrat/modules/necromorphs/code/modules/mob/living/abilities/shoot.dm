@@ -13,15 +13,13 @@
 	action_icon = 'icons/mob/actions/actions_clown.dmi'
 	action_icon_state = "rustle"
 	action_background_icon_state = "bg_fugu"
+	base_action = /datum/action/cooldown/spell_like
 	var/cooldown = 1 SECONDS
-	COOLDOWN_DECLARE(cooldown_timer)
 
-/obj/effect/proc_holder/necro/Click(location, control, params)
-	var/_cooldown = COOLDOWN_TIMELEFT(src, cooldown_timer)
-	if(_cooldown)
-		to_chat(usr, span_notice("[name] is cooling down. You can use it again in [_cooldown % 10] seconds."))
-		return FALSE
-	return TRUE
+/obj/effect/proc_holder/necro/New(loc, ...)
+	.=..()
+	var/datum/action/cooldown/spell_like/_action = action
+	_action.cooldown_time = cooldown
 
 /obj/effect/proc_holder/necro/shoot
 	name = "Shoot"
@@ -88,7 +86,7 @@
 	if(..())
 		return
 
-	if(ranged_ability_user.incapacitated() || COOLDOWN_TIMELEFT(src, cooldown_timer))
+	if(ranged_ability_user.incapacitated())
 		remove_ranged_ability()
 		return
 
@@ -133,7 +131,6 @@
 			else
 				playsound(ranged_ability_user, fire_sound, VOLUME_MID, 1)
 	remove_ranged_ability()
-	COOLDOWN_START(src, cooldown_timer, cooldown)
 	return TRUE
 
 /obj/effect/proc_holder/necro/shoot/on_lose(mob/living/carbon/user)
