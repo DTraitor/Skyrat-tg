@@ -550,15 +550,8 @@ GLOBAL_LIST_INIT(loadout_miscunders, generate_loadout_items(/datum/loadout_item/
 
 /datum/loadout_item/under/miscellaneous/adam
 	name = "Leaf"
-	item_path = /obj/item/clothing/under/costume/loincloth/sensor/adam
+	item_path = /obj/item/clothing/under/misc/gear_harness/adam
 
-/datum/loadout_item/under/miscellaneous/loincloth_leather
-	name = "Leather Loincloth"
-	item_path = /obj/item/clothing/under/costume/loincloth/sensor
-
-/datum/loadout_item/under/miscellaneous/loincloth_cloth
-	name = "Cloth Loincloth"
-	item_path = /obj/item/clothing/under/costume/loincloth/cloth/sensor
 
 ////////////////////////////////////////////////////////////////FORMAL UNDERSUITS
 /datum/loadout_item/under/formal
@@ -786,6 +779,10 @@ GLOBAL_LIST_INIT(loadout_miscunders, generate_loadout_items(/datum/loadout_item/
 /datum/loadout_item/under/formal/white_suit
 	name = "White Suit"
 	item_path = /obj/item/clothing/under/suit/white
+
+/datum/loadout_item/under/formal/fancy_suit
+	name = "Fancy Suit"
+	item_path = /obj/item/clothing/under/suit/fancy
 
 /datum/loadout_item/under/formal/formalmed
 	name = "Formal Medical Suit"
