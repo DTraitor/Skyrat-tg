@@ -187,7 +187,7 @@
 		master.update_health_hud()
 	pulse_area(master, claim_range, pulse_range, expand_range)
 //	reinforce_area(delta_time)
-	produce_slashers()
+//	produce_slashers()
 	..()
 
 /obj/structure/necromorph/growth/special/core/ComponentInitialize()

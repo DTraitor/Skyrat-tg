@@ -5322,6 +5322,7 @@
 #include "modular_skyrat\modules\necromorphs\code\modules\clothing\spacesuits\rig\modules\kinesis\helpers.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\events\marker.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\mob_defines.dm"
+#include "modular_skyrat\modules\necromorphs\code\modules\mob\dead\observer\freelook\marker\biomass.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\dead\observer\freelook\marker\marker.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\ability.dm"
 #include "modular_skyrat\modules\necromorphs\code\modules\mob\living\abilities\auto_sound.dm"

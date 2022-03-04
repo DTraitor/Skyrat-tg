@@ -34,4 +34,4 @@
 
 /obj/structure/necromorph/growth/special/factory/Be_Pulsed()
 	. = ..()
-	produce_slashers()
+	//produce_slashers()

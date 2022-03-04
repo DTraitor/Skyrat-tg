@@ -133,7 +133,7 @@
 	playsound(src.loc, 'sound/effects/splat.ogg', 50, TRUE) //Expand() is no longer broken, no check necessary.
 	return ..()
 
-/obj/structure/necromorph/growth/marker_act()
+/obj/structure/necromorph/growth/growth_act()
 	return
 
 /obj/structure/necromorph/growth/Adjacent(atom/neighbour)
@@ -239,12 +239,12 @@ Growth Expand Proc: OLD
 			B.update_appearance()
 			return B
 		else
-			marker_attack_animation(T, controller)
+			growth_attack_animation(T, controller)
 			T.growth_act(src) //if we can't move in hit the turf again
 			qdel(B) //we should never get to this point, since we checked before moving in. destroy the blob so we don't have two blobs on one tile
 			return
 	else
-		marker_attack_animation(T, controller) //if we can't, animate that we attacked
+		growth_attack_animation(T, controller) //if we can't, animate that we attacked
 
 	return
 

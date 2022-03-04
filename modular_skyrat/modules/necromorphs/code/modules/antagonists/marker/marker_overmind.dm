@@ -38,7 +38,7 @@ GLOBAL_LIST_EMPTY(corruption)
 	pass_flags = PASSBLOB
 	faction = list(ROLE_NECROMORPH)
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
-	hud_type = /datum/hud/marker_master
+	hud_type = /datum/hud/marker_overmind
 
 	var/datum/corruption/corruption
 
@@ -224,7 +224,7 @@ GLOBAL_LIST_EMPTY(corruption)
 			var/link = FOLLOW_LINK(M, src)
 			to_chat(M, "[link] [rendered]")
 
-/mob/camera/marker/marker_act(obj/structure/necromorph/growth/B)
+/mob/camera/marker/growth_act(obj/structure/necromorph/growth/B)
 	return
 
 /mob/camera/marker/get_status_tab_items() // Replace with Biomass, # of Necromorphs, % Corrupted, Marker Integrity, Living Crew

@@ -59,7 +59,7 @@
 	if(master)
 		. += "Markers to Win: [master.growths_legit.len]/[master.markerwincount]"
 
-/mob/living/simple_animal/hostile/necromorph/marker_act(obj/structure/necromorph/growth/B)
+/mob/living/simple_animal/hostile/necromorph/growth_act(obj/structure/necromorph/growth/B)
 	if(stat != DEAD && health < maxHealth)
 		for(var/i in 1 to 2)
 			var/obj/effect/temp_visual/heal/H = new /obj/effect/temp_visual/heal(get_turf(src)) //hello yes you are being healed
