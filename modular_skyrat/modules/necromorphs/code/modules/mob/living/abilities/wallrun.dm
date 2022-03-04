@@ -1,513 +1,247 @@
-/*
-	Wallrun extension
+/proc/dir_to_angle(dir)
+	var/list/dirs = list(
+		"[NORTH]" = 0,
+		"[NORTHEAST]" = 45,
+		"[EAST]" = 90,
+		"[SOUTHEAST]" = 135,
+		"[SOUTH]" = 180,
+		"[SOUTHWEST]" = 225,
+		"[WEST]" = 270,
+		"[NORTHWEST]" = 315)
+	return dirs["[dir]"]
 
-	Used for an atom - primarily mobs - that can move along walls as if they were floors.
-	Functionally, the mob doesn't leave its floor tile. But
-		it visually offsets and rotates towards the wall,
-		turns partially transparent to signify being closer to the camera
-		counts as flying for the purpose of collision and floor traps
-*/
-//wallrun
-//Wall Run
-//wallrunning
-///atom/movable
 /datum/component/wallrun
 	dupe_type = /datum/component/wallrun
-
-	var/mount_time = 0.7 SECONDS	//Time taken for the visual animation to mount/unmount
-
-	var/atom/mountpoint	//What thing are we currently standing on?
-	var/turf/mount_turf	//What tile are we walking against?
-	//This will usually be the location of mountpoint, but it can be different in the case of border items like windows
-
-	var/mount_angle
-
-	var/atom/next_mountpoint	//What will we mount to next? This is set in pre-move
-	var/vector2/offset
-
-	//What things count as a surface for our practical purposes?
-	//This should only contain types of dense atoms which generally occupy their whole tile. Walls, windows, grilles, etc
+	var/mount_time = 0.7 SECONDS
+	var/atom/mount_atom
+	var/atom/next_mountpoint
+	var/current_angle
 	var/list/valid_types = list(/turf/closed/wall,
-	/obj/structure/grille,
-	/obj/structure/window,
-	/obj/machinery/door,
-	/mob/living)
-
-	var/pixel_offset_magnitude = 0	//How far to offset us towards the target atom
-
-	//These hold cached values of the user's default - not current - variables, at the time we mounted a wall
-	var/vector2/cached_pixels
-	var/default_rotation
+		/obj/structure/grille,
+		/obj/structure/window,
+		/obj/machinery/door,
+		/mob/living)
 	var/cached_alpha
-	var/cached_passflags
-	var/passflag_delta	//Holds flying and table passflags, but only if the user doesn't have them naturally. Used to apply/remove them
-	var/vector2/centre_offset //What offset do we add to our sprite to centre it in the tile? Calculated based on dmi size. This is applied flatly regardless of rotation
-	var/vector2/base_offset	//What offset do we add to place our feet against the edge of the tile? This is rotated before applying
-	var/cached_density
-	var/visual_dir = SOUTH	//Which direction is our sprite facing? This may be different from the normal dir value
+	var/passflag_delta
+	var/block_movement
 
-
-
-//	statmods = list(STATMOD_MOVESPEED_MULTIPLICATIVE = 1.15, STATMOD_EVASION = 10, STATMOD_VIEW_RANGE = 1)
-//	auto_register_statmods = FALSE
-
-/datum/component/wallrun/Initialize(var/atom/movable/_user)
+/datum/component/wallrun/Initialize()
 	if(!ismovable(parent))
 		return COMPONENT_INCOMPATIBLE
-	RegisterSignal(parent, COMSIG_MOVABLE_BUMP, .proc/on_bumped)
+	RegisterSignal(parent, COMSIG_MOVABLE_BUMP, .proc/attempt_connect)
 
+/datum/component/wallrun/proc/attempt_connect(datum/source, atom/obstacle)
+	if(!mount_atom)
+		return attempt_mount(obstacle)
+	else
+		return attempt_transition(obstacle)
 
+/datum/component/wallrun/proc/cache_data()
+	var/atom/movable/holder = parent
+	cached_alpha = holder.alpha
+	if(!(holder.pass_flags & PASSTABLE))
+		passflag_delta &= PASSTABLE
 
+	if(!(holder.pass_flags & PASSMACHINE))
+		passflag_delta &= PASSMACHINE
 
-
-
-
-/*-----------------
-	Mounting
-------------------*/
-//This should only be called when we are NOT already mounted. When we are mounted, use attempt_transition instead
-/datum/component/wallrun/proc/attempt_mount(var/atom/target)
-	if (is_valid_mount_target(target))
+/datum/component/wallrun/proc/attempt_mount(atom/target)
+	if(is_valid_mount_target(target))
 		cache_data()
 		mount_to_atom(target)
-		mount_animation()
+		mount_animation(TRUE)
 		var/atom/movable/holder = parent
 		holder.visible_message("[holder] climbs onto the [target]")
 		return TRUE
 
+/datum/component/wallrun/proc/is_valid_mount_target(atom/target, ignore_selfcheck)
+	if(!ignore_selfcheck && (target == parent || target == mount_atom))
+		return FALSE
 
-//This cannot fail, make sure safety checks are done already
-/datum/component/wallrun/proc/mount_to_atom(var/atom/target)
-	mountpoint = target
-	if (offset)
-		release_vector(offset)
-	var/atom/movable/holder = parent
-	offset = get_new_vector(holder.x - target.x, holder.y - target.y)
+	if(!target.density)
+		return FALSE
 
-	if (istype(mountpoint, /atom/movable))
-		RegisterSignal(mountpoint, COMSIG_MOVABLE_MOVED, .proc/on_mountpoint_move)
-		RegisterSignal(mountpoint, COMSIG_MOVABLE_PRE_MOVE, .proc/on_premove)
-		RegisterSignal(mountpoint, COMSIG_ATOM_DIR_CHANGE, .proc/dir_set)
-		RegisterSignal(mountpoint, COMSIG_MOVABLE_MOVED, .proc/on_move)
-		RegisterSignal(mountpoint, COMSIG_LIVING_DEATH, .proc/unmount_to_floor)
+	var/typematch = FALSE
+	for(var/typepath in valid_types)
+		if(istype(target, typepath))
+			typematch = TRUE
+			break
+	if(!typematch)
+		return FALSE
 
-	holder.pass_flags |= passflag_delta
-
-
-	mount_turf = get_mount_target_turf(parent, target)
-
-
-
-/datum/component/wallrun/proc/mount_animation()
-	//Visuals
-
-	var/atom/movable/holder = parent
-	mount_angle = rotation_to_target(holder, mount_turf, SOUTH)	//Point our feet at the wall we're walking on
-	holder.default_rotation = mount_angle
-
-
-	var/vector2/newpix = base_offset.Turn(mount_angle)
-	newpix.SelfAdd(centre_offset)	//The base offset is used with rotation
-	holder.default_pixel_x = newpix.x
-	holder.default_pixel_y = newpix.y
-
-	holder.default_alpha = min(cached_alpha * 0.5, 100)
-
-
-	animate(holder, transform = holder.get_default_transform(), alpha = holder.default_alpha, pixel_x = holder.default_pixel_x, pixel_y = holder.default_pixel_y, time = mount_time, easing = BACK_EASING)
-
-
-	release_vector(newpix)
-
-
-
-
-
-/*-----------------
-	Transitioning
-------------------*/
-//This should only be called when we are already mounted
-/datum/component/wallrun/proc/attempt_transition(var/atom/target)
-	if (!target)
-		return
-	if (is_valid_mount_target(target) && is_valid_transition_target(target))
-		return transition_to_atom(target)
-
-//Called when we move from one mounted atom to another
-/datum/component/wallrun/proc/transition_to_atom(var/atom/target)
 	var/target_turf = get_mount_target_turf(parent, target)
-	if (!target_turf)
-		return
-	var/angle_to_target = rotation_to_target(parent, target_turf, SOUTH)
-	//If its a different direction from our current mount, redo the animation
-	var/do_animate = FALSE
-	if (mount_angle != angle_to_target)
-		do_animate = TRUE
+	if(!(target_turf in orange(1, parent)))
+		return FALSE
 
-	//First of all, unmount us from the old atom
-	unmount()
-
-
-
-	mount_to_atom(target)
-	if (do_animate)
-		mount_animation()
+	if(isliving(target))
+		var/mob/living/LT = target
+		if(LT.mob_size < MOB_SIZE_LARGE)
+			return FALSE
 	return TRUE
 
+/datum/component/wallrun/proc/get_mount_target_turf(atom/origin, atom/target)
+	var/turf/T = get_turf(target)
+	if(target.flags_1 & ON_BORDER_1)
+		var/dir_to_us = get_dir(T, origin)
+		if(dir_to_us & target.dir)
+			return T
+		return get_step(T, target.dir)
 
-
-//Attempts either mount or transition according to current mounted status
-/datum/component/wallrun/proc/attempt_connect(var/atom/target)
-	if(mountpoint)
-		return attempt_transition(next_mountpoint)
+	if(get_turf(origin) != T)
+		return T
 	else
-		return attempt_mount(next_mountpoint)
+		return null
 
+/datum/component/wallrun/proc/is_valid_transition_target(var/atom/target)
+	var/target_turf = get_mount_target_turf(parent, target)
+	if(!(target_turf in orange(mount_atom, 1)))
+		return FALSE
+	return TRUE
 
-/*-----------------
-	Unmounting
-------------------*/
-//Called everytime we move between mountpoints, or end mounting
-/datum/component/wallrun/proc/unmount(var/atom/target)
-	if (mountpoint)
-		if (istype(mountpoint, /atom/movable))
-			UnregisterSignal(mountpoint, COMSIG_MOVABLE_MOVED, .proc/on_mountpoint_move)
-		UnregisterSignal(mountpoint, COMSIG_MOVABLE_PRE_MOVE, .proc/on_premove)
-		UnregisterSignal(mountpoint, COMSIG_ATOM_DIR_CHANGE, .proc/dir_set)
-		UnregisterSignal(mountpoint, COMSIG_MOVABLE_MOVED, .proc/on_move)
-		UnregisterSignal(mountpoint, COMSIG_LIVING_DEATH, .proc/unmount_to_floor)
-
-	mountpoint = null
+/datum/component/wallrun/proc/mount_to_atom(atom/target)
+	mount_atom = target
 	var/atom/movable/holder = parent
-	holder.pass_flags -= passflag_delta
+	if(ismovable(mount_atom))
+		RegisterSignal(mount_atom, COMSIG_MOVABLE_MOVED, .proc/on_mount_atom_move)
+		RegisterSignal(mount_atom, COMSIG_ATOM_DIR_CHANGE, .proc/on_mount_dir_change)
+		RegisterSignal(mount_atom, COMSIG_LIVING_DEATH, .proc/unmount)
+		RegisterSignal(mount_atom, COMSIG_PARENT_QDELETING, .proc/unmount_silent)
+	RegisterSignal(holder, COMSIG_MOVABLE_PRE_MOVE, .proc/on_parent_premove)
+	RegisterSignal(holder, COMSIG_MOVABLE_MOVED, .proc/on_parent_move)
+	RegisterSignal(holder, COMSIG_LIVING_DEATH, .proc/unmount)
+	holder.pass_flags &= passflag_delta
 
-
-//Called to end mounting and return to standing on the floor
-/datum/component/wallrun/proc/unmount_to_floor()
-	var/atom/movable/holder = parent
-	holder.visible_message("[holder] climbs down from \the [mountpoint]")
-	UnregisterSignal(holder, COMSIG_LIVING_DEATH, .proc/unmount_to_floor)
-
-	unmount_animation()
-	unmount()
-
-
-//Called when unmounting as part of some other action, like performing a leap off a wall
-/datum/component/wallrun/proc/unmount_silent()
-	unmount()
-	//Visuals
-	var/atom/movable/holder = parent
-	holder.default_rotation = 0
-
-	holder.default_pixel_x = cached_pixels.x
-	holder.default_pixel_y = cached_pixels.y
-	cached_pixels = null
-
-	holder.default_alpha = cached_alpha
-	cached_alpha = null
-
-
-	holder.animate_to_default(0)
-	UnregisterSignal(mountpoint, COMSIG_MOVABLE_MOVED, .proc/on_mountpoint_move)
-	UnregisterSignal(mountpoint, COMSIG_MOVABLE_PRE_MOVE, .proc/on_premove)
-	UnregisterSignal(mountpoint, COMSIG_ATOM_DIR_CHANGE, .proc/dir_set)
-	UnregisterSignal(mountpoint, COMSIG_MOVABLE_MOVED, .proc/on_move)
-	UnregisterSignal(mountpoint, COMSIG_LIVING_DEATH, .proc/unmount_to_floor)
-
-
-
-
-/datum/component/wallrun/proc/cache_data()
-	var/atom/movable/holder = parent
-	cached_pixels = get_new_vector(holder.default_pixel_x, holder.default_pixel_y)
-	default_rotation = holder.default_rotation
-	cached_alpha = holder.default_alpha
-	cached_passflags = holder.pass_flags
-	if (!(cached_passflags & PASSTABLE))
-		passflag_delta |= PASSTABLE
-
-	if (!(cached_passflags & FLYING))
-		passflag_delta |= FLYING
-
-	//Lets calculate the centre offset, once only
-	if (!centre_offset)
-
-		//Size won't be released in this stack, because its value is transferred into base_offset
-		var/vector2/size = holder.get_icon_size()
-
-		//We cut the size in half and then subtract 16,16, which is the centre of a normal 32x32 tile.
-		size *= 0.5
-		size -= get_new_vector(WORLD_ICON_SIZE * 0.5, WORLD_ICON_SIZE * 0.5)
-
-		if (centre_offset)
-			release_vector(centre_offset)
-		centre_offset = size*-1
-
-		//Base offset is simple. Its just the inverted Y offset and no X
-		if (base_offset)
-			release_vector(base_offset)
-		base_offset = size
-		base_offset.x = 0
-		base_offset.y += pixel_offset_magnitude //We can add in the pixel offset here for efficiency too
-
-
-
-/datum/component/wallrun/proc/unmount_animation()
-	//Visuals
-	var/atom/movable/holder = parent
-	holder.default_rotation = default_rotation
-	default_rotation = 0
-
-	holder.default_pixel_x = cached_pixels.x
-	holder.default_pixel_y = cached_pixels.y
-	cached_pixels = null
-
-	holder.default_alpha = cached_alpha
-	cached_alpha = null
-
-
-	animate(holder, transform = holder.get_default_transform(), alpha = holder.default_alpha, pixel_x = holder.default_pixel_x, pixel_y = holder.default_pixel_y, time = mount_time, easing = BACK_EASING)
-
-
-
-
-
-/*-----------------
-	Detection
-------------------*/
-/datum/component/wallrun/proc/find_mountpoint(var/origin)
-	for (var/atom/target in orange(origin, 1))
-		if (is_valid_mount_target(target) && is_valid_transition_target(target))
+/datum/component/wallrun/proc/find_mountpoint(origin)
+	for(var/atom/target in orange(origin, 1))
+		// Can't hook to grille if there is a window in our way
+		if(istype(target, /obj/structure/grille))
+			for(var/obj/structure/window/test in target.loc)
+				. = TRUE
+				break
+			if(.)
+				. = null
+				continue
+		if(is_valid_mount_target(target) && is_valid_transition_target(target))
 			return target
 	return null
 
-//Finds what turf we're trying to connect to
-/datum/component/wallrun/proc/get_mount_target_turf(var/atom/origin, var/atom/target)
-	var/turf/U = get_turf(origin)
-	var/turf/T = get_turf(target)
-
-
-	//Special behaviour for border items
-	if (target.flags_1 & ON_BORDER_1)
-		//In the case of border atoms, we want to get the tile on the OTHER side of the border from us
-		var/dir_to_us = get_dir(T, origin)
-		if (dir_to_us & target.dir)
-			return T	//If the item is facing towards us, the other side is its own turf
-		//If its facing away from us, the other side is the turf its facing
-		return get_step(T, target.dir)
-
-	if (U != T)
-		return T
-
-	else
-		return null //IF its in our own turf and not a border item, we don't want to attach to it
-
-/***********************
-	Safety Checks
-************************/
-/*
-	Returns true if our user could possibly mount on this.
-	The user's position is only taken into account if the target is on a border
-*/
-/datum/component/wallrun/proc/is_valid_mount_target(var/atom/target, var/ignore_self = FALSE)
-	//Don't transition to ourself silly
-	if (!ignore_self && (target == mountpoint || target == parent))
-		return FALSE
-
-	//Only dense atoms
-	if (!target.density)
-		return FALSE
-
-	//Must be correct type
-	var/typematch = FALSE
-	for (var/typepath in valid_types)
-		if (istype(target, typepath))
-			typematch = TRUE
-			break
-	if (!typematch)
-		return FALSE
-
-	//If its a border item, it must be roughly facing the user
-	var/target_turf = get_mount_target_turf(parent, target)
-	if (!(target_turf in orange(1, parent)))
-		return FALSE
-
-	//Special checks for mobs
-	if (isliving(target))
-		var/mob/living/LT = target
-		if (LT.mob_size < MOB_SIZE_LARGE)
-			return FALSE
-
-
-	return TRUE
-
-
-
-
-/*
-	Called when we're moving from one mountpoint to another. We already know the target is valid
-	This proc tests whether we can reach it from our current spot
-*/
-/datum/component/wallrun/proc/is_valid_transition_target(var/atom/target)
-	var/target_turf = get_mount_target_turf(parent, target)
-	if (!(target_turf in orange(mountpoint, 1)))
-		return FALSE
-
-	return TRUE
-
-
-//Access Proc
-/atom/movable/proc/can_wallrun(error_messages = TRUE)
-	var/datum/component/wallrun/wallrun = GetComponent(/datum/component/wallrun)
-	if(wallrun)
-		if(error_messages && wallrun.mountpoint)
-			to_chat(src, "You're already wallrunning")
-			return FALSE
-		return TRUE
-	return FALSE
-
-/mob/living/can_wallrun(error_messages = TRUE)
-	if(..() && stat == CONSCIOUS)
-		return FALSE
-	return FALSE
-
-/*------------------------
-	Observation Calls
--------------------------*/
-//Called when we bump into something
-/datum/component/wallrun/proc/on_bumped(var/atom/movable/mover, var/atom/obstacle)
-	//Can't do wallrun and wallmount at the same time
-	if (mover.is_mounted())
+/datum/component/wallrun/proc/on_parent_premove(atom/mover, newloc)
+	if(!mount_atom)
 		return
 
-	if (!mountpoint)
-		attempt_mount(obstacle)
+	var/atom/next = find_mountpoint(newloc)
+	if(!next)
+		if(get_dist(mount_atom, newloc) <= 1)
+			next = mount_atom
+	if(next)
+		next_mountpoint = next
+		if(block_movement)
+			return COMPONENT_MOVABLE_BLOCK_PRE_MOVE
 	else
-		attempt_transition(obstacle)
+		unmount()
 
-//Called when the thing we're mounted to, moves
-//This will most often happen when attached to mobs
-/datum/component/wallrun/proc/on_mountpoint_move()
-	var/turf/T = locate(mountpoint.x + offset.x, mountpoint.y + offset.y, mountpoint.z)
+/datum/component/wallrun/proc/on_parent_move(atom/mover, oldloc, newloc)
+	var/mounted = FALSE
+	if(next_mountpoint)
+		if(next_mountpoint == mount_atom)
+			mounted = is_valid_mount_target(mount_atom, TRUE)
+			mount_animation()
+		else if(mount_atom)
+			mounted = attempt_connect(parent, next_mountpoint)
+		next_mountpoint = null
+	if(!mounted)
+		var/atom/next = find_mountpoint(newloc)
+		if(next && attempt_connect(parent, next))
+			mounted = TRUE
+		else if(mount_atom && is_valid_mount_target(mount_atom, TRUE))
+			mounted = TRUE
+		else
+			unmount()
+
+/datum/component/wallrun/proc/mount_animation(mounting)
 	var/atom/movable/holder = parent
-	if (T.Enter(holder))
-		holder.forceMove(T)
-	else	//We can't move with it and get pushed off
-		unmount_to_floor()
+	var/new_angle = dir_to_angle(DIRFLIP(get_dir(holder, mount_atom)))
+	var/temp_angle
+	if(current_angle != null)
+		temp_angle = new_angle - current_angle
+	else
+		temp_angle = new_angle
+	current_angle = new_angle
+	if(temp_angle || mounting)
+		animate(holder, transform = holder.transform.Turn(temp_angle), alpha = min(cached_alpha * 0.5, 100), time = mount_time, easing = BACK_EASING)
 
-//Called when the thing we're mounted to changes density
-//This will most often happen with airlocks opening
-/datum/component/wallrun/proc/on_density_set()
-	if (!mountpoint  || QDELETED(mountpoint) || mountpoint.density == FALSE)
-		unmount_to_floor()
+/datum/component/wallrun/proc/unmount_animation()
+	var/atom/movable/holder = parent
+	animate(holder, transform = holder.transform.Turn(-current_angle), alpha = cached_alpha, time = mount_time, easing = BACK_EASING)
+	current_angle = null
+	cached_alpha = null
 
+/datum/component/wallrun/proc/attempt_transition(atom/target)
+	if(is_valid_mount_target(target) && is_valid_transition_target(target))
+		return transition_to_atom(target)
+
+/datum/component/wallrun/proc/transition_to_atom(atom/target)
+	var/target_turf = get_mount_target_turf(parent, target)
+	if(!target_turf)
+		return
+	var/angle_to_target = DIRFLIP(dir_to_angle(get_dir(parent, target)))
+	var/do_animate = FALSE
+	if(current_angle != angle_to_target)
+		do_animate = TRUE
+	handle_unmount()
+	mount_to_atom(target)
+	if(do_animate)
+		mount_animation()
+	return TRUE
+
+/datum/component/wallrun/proc/handle_unmount()
+	var/atom/movable/holder = parent
+	if(mount_atom)
+		UnregisterSignal(mount_atom, COMSIG_MOVABLE_MOVED, .proc/on_mount_atom_move)
+		UnregisterSignal(mount_atom, COMSIG_ATOM_DIR_CHANGE, .proc/on_mount_dir_change)
+		UnregisterSignal(mount_atom, COMSIG_LIVING_DEATH, .proc/unmount)
+		UnregisterSignal(mount_atom, COMSIG_PARENT_QDELETING, .proc/unmount_silent)
+	UnregisterSignal(parent, COMSIG_MOVABLE_PRE_MOVE, .proc/on_parent_premove)
+	UnregisterSignal(parent, COMSIG_MOVABLE_MOVED, .proc/on_parent_move)
+	UnregisterSignal(holder, COMSIG_LIVING_DEATH, .proc/unmount)
+	mount_atom = null
+	holder.pass_flags &= ~passflag_delta
+
+/datum/component/wallrun/proc/unmount(atom/target)
+	var/atom/movable/holder = parent
+	holder.visible_message("[holder] climbs down from \the [mount_atom]")
+	unmount_animation()
+	handle_unmount()
+
+/datum/component/wallrun/proc/unmount_silent(atom/target)
+	unmount_animation()
+	handle_unmount()
+
+/datum/component/wallrun/proc/find_mount_atom(origin)
+	for(var/atom/target in orange(origin, 1))
+		if(is_valid_mount_target(target) && is_valid_transition_target(target))
+			return target
+	return null
+
+/datum/component/wallrun/proc/on_mount_atom_move(atom/movable/target, atom/origin, direction, forced)
+	var/atom/movable/holder = parent
+	var/turf/new_loc = get_step(holder, direction)
+	if(new_loc.Enter(holder))
+		holder.forceMove(new_loc)
+	else
+		unmount()
 
 /*
-	Called just before the user moves.
-	We will attempt to find a valid mountpoint near the target
-
-	If we can't find one, we'll unmount to floor before moving
+/datum/component/wallrun/proc/on_density_set()
+	if(!mount_atom.density)
+		unmount()
 */
-/datum/component/wallrun/proc/on_premove(var/atom/mover, var/curloc, var/newloc)
-	.=TRUE
-	if (!mountpoint)
-		return	//If we aren't already mounted to something, we don't care
 
-	//Try to find something new to mount to
-	var/atom/next = find_mountpoint(newloc)
-
-	//If that fails, lets see if we'll still be able to hang onto the current mountpoint
-	if (!next)
-		if (get_dist(mountpoint, newloc) <= 1)
-			next = mountpoint
-
-	//Alright the moment of truth. Are we going to remain mounted after the next movement?
-	if (next)
-		next_mountpoint = next
-	else
-		unmount_to_floor()
-
-
-/datum/component/wallrun/proc/on_move(var/atom/mover, var/oldloc, var/newloc)
-	var/mounted = FALSE
-	//We have a next target? Try mounting to it
-	if (next_mountpoint)
-
-		//First of all, if we're trying to hang onto our existing point, check that its still valid
-		if (next_mountpoint == mountpoint)
-			mounted = is_valid_mount_target(mountpoint, TRUE)	//Pass in true to ignore selfchecking
-			mount_animation()	//Do the mount animation without changing anything, this will re-orient us to the wall from our new angle
-		else if(mountpoint)
-			mounted = attempt_connect(next_mountpoint)
-
-		next_mountpoint = null
-
-	//Did we successfully connect to a new mountpoint? (or remain connected to the current one?)
-	if(!mounted)
-
-
-		//If we get here, one of the following has happened
-			//1. We had no next mountpoint set
-			//2. We failed to connect to the one we had set
-			//3. We failed to hang onto our existing point
-
-		//In any case, we must now find and connect to a new point, or drop to floor
-		var/atom/next = find_mountpoint(newloc)
-		if (next && attempt_connect(next))
-			mounted = TRUE
-
-		//Alright that failed, lets try hanging onto the existing
-		else if (mountpoint && is_valid_mount_target(mountpoint, TRUE))
-			mounted = TRUE
-
-		//We are out of options, we can no longer maintain a hold on the wall
-		else
-			unmount_to_floor()
-
-
-	if (mounted && isliving(parent))
-		var/mob/living/living = parent
-		living.play_species_audio(living, SOUND_CLIMB, VOLUME_LOW, 1)
-
-		//Since the native behaviour of Move causes the mob to change direction, we must compensate and fix their direction by attempting to turn towards the cached visual dir
-		dir_set(living, visual_dir, visual_dir)
-
-//An attempt to make directional facings meaningful
-/datum/component/wallrun/proc/dir_set(var/atom/mover, var/old_dir, var/new_dir)
-	if (mountpoint)
-		//We get the normal direction of the wall
-		var/vector2/current_wall_normal = get_new_vector(mover.x - mountpoint.x, mover.y - mountpoint.y)
-
-		//Lets get the direction of the target now
-		var/vector2/desired_dir = Vector2.NewFromDir(new_dir)	//This is working with a preexisting global, should NOT be released
-
-		//Alright next up, we get the angle between these two
-		var/desired_angle = desired_dir.AngleFrom(current_wall_normal)
-
-		//We only want cardinal directions, round it off
-		desired_angle = round(desired_angle, 90)
-
-		var/actual_dir = turn(SOUTH, desired_angle)
+/datum/component/wallrun/proc/on_mount_dir_change(atom/mover, old_dir, new_dir)
+	if(mount_atom)
 		var/atom/movable/holder = parent
-		holder.dir = actual_dir
-		release_vector(desired_dir)
-		release_vector(current_wall_normal)
-	visual_dir = new_dir
-
-
-
-/*--------------------
-	Helpers
----------------------*/
-/atom/proc/unmount_from_wall()
-	var/datum/component/wallrun/wallrun = GetComponent(/datum/component/wallrun)
-	if (wallrun?.mountpoint)
-		wallrun.unmount_silent()
-
-//Returns what direction this atom -appears- to be facing
-/atom/proc/get_visual_dir()
-	var/datum/component/wallrun/wallrun = GetComponent(/datum/component/wallrun)
-	if(wallrun)
-		return wallrun.visual_dir
-	else
-		return dir
+		var/turf/new_loc = get_step(mover, DIRFLIP(new_dir))
+		if(new_loc.Enter(holder))
+			holder.forceMove(new_loc)
+		else
+			unmount()
