@@ -28,7 +28,7 @@
 				src.Stun(1)
 			src.shake_animation(40)
 			set_audio_cooldown(sound_type, 8 SECONDS)
-			new /obj/effect/effect/expanding_circle(loc, 2, 3 SECOND)	//Visual effect
+			new /obj/effect/expanding_circle(loc, 2, 3 SECOND)	//Visual effect
 			for (var/mob/M in range(8, src))
 				var/distance = get_dist(src, M)
 				var/intensity = 5 - (distance * 0.3)

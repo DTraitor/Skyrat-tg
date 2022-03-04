@@ -279,7 +279,7 @@ If performed successfully on a live crewman, it yields a bonus of 10kg biomass f
 	//The leap impact deals two burst of damage.
 
 	//Firstly, to mobs within 1 tile of us
-	new /obj/effect/effect/expanding_circle(user.loc, -0.65, 0.5 SECONDS)
+	new /obj/effect/expanding_circle(user.loc, -0.65, 0.5 SECONDS)
 	for (var/mob/living/L in range(1, user))
 		if (L == user)
 			continue

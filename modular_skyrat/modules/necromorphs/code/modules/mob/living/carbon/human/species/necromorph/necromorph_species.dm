@@ -163,7 +163,7 @@
 */
 
 //Individual necromorphs are identified only by their species
-/datum/species/necromorph/random_name()
+/datum/species/necromorph/random_name(gender, unique, lastname)
 	var/randname = "[src.name] [rand(0,999)]"
 	return randname
 

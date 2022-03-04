@@ -208,13 +208,13 @@ Best used near the end, when all seems quiet, to help the necromorphs hunt down 
 				L.take_overall_damage(15)
 
 		//Lets do some cool effects
-		var/obj/effect/effect/expanding_circle/EC = new /obj/effect/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
+		var/obj/effect/expanding_circle/EC = new /obj/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
 		EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 		spawn(4)
-			EC = new /obj/effect/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
+			EC = new /obj/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
 			EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 			spawn(4)
-				EC = new /obj/effect/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
+				EC = new /obj/effect/expanding_circle(loc, 1.5, 1.5 SECOND,"#ff0000")
 				EC.pixel_y += 40	//Offset it so it appears to be at our mob's head
 
 /*

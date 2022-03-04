@@ -472,11 +472,11 @@
 		power_fail()
 		return
 
-	new /obj/effect/effect/expanding_circle(subject.loc, _expansion_rate = -0.7, 	_lifespan = 6, _color = COLOR_KINESIS_INDIGO_PALE)
+	new /obj/effect/expanding_circle(subject.loc, _expansion_rate = -0.7, 	_lifespan = 6, _color = COLOR_KINESIS_INDIGO_PALE)
 	spawn(1)
-		new /obj/effect/effect/expanding_circle(subject.loc, _expansion_rate = -0.7, 	_lifespan = 6, _color = COLOR_KINESIS_INDIGO_PALE)
+		new /obj/effect/expanding_circle(subject.loc, _expansion_rate = -0.7, 	_lifespan = 6, _color = COLOR_KINESIS_INDIGO_PALE)
 		sleep(1)
-		new /obj/effect/effect/expanding_circle(subject.loc, _expansion_rate = -0.7, 	_lifespan = 6, _color = COLOR_KINESIS_INDIGO_PALE)
+		new /obj/effect/expanding_circle(subject.loc, _expansion_rate = -0.7, 	_lifespan = 6, _color = COLOR_KINESIS_INDIGO_PALE)
 	playsound(subject, 'sound/effects/rig/modules/kinesis_launch.ogg', VOLUME_HIGH, 1)
 
 	release_type = RELEASE_LAUNCH
