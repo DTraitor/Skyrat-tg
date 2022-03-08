@@ -1,97 +1,62 @@
-//DO NOT INCLUDE THIS FILE
-//ITs here as a template for abilites to copypaste
-
-//dodge
-//Dodge
-//dodging
-///mob/living
-/datum/extension/dodge
+/datum/action/cooldown/necro/dodge
 	name = "Dodge"
-	base_type = /datum/extension/dodge
-	expected_type = /mob/living
-	flags = EXTENSION_FLAG_IMMEDIATE
+	cooldown_time = 5 SECONDS
+	shared_cooldown = "necro_charge"
+	var/block_movement = FALSE
+	var/dodge_range = 1
+	var/movement_delay = 1.25
 
-	var/status
-	var/mob/living/user
-	var/power = 1
-	var/cooldown = 1 SECOND
-	var/duration = 1 SECOND
-
-	var/started_at
-	var/stopped_at
-
-	statmods = list(STATMOD_EVASION = 60)
+/datum/action/cooldown/necro/dodge/New(Target)
+	. = ..()
 
 
-/***********************
-	Access Proc
-************************/
-/mob/living/proc/dodge_ability(var/_duration, var/_cooldown, var/_power)
-	if (can_dodge())
-		set_extension(src, /datum/extension/dodge, _duration,_cooldown,_power)
-
-/datum/extension/dodge/New(var/mob/living/_user, var/_duration, var/_cooldown, var/_power)
+/datum/action/cooldown/necro/dodge/Activate()
 	.=..()
-	user = _user
-	duration = _duration
-	cooldown = _cooldown
-	power = _power
-	start()
+	var/list/possible_turfs = trange(dodge_range, owner)
+	possible_turfs -= get_turf(owner)
+	possible_turfs -= get_step(owner, owner.dir)
+	possible_turfs -= get_step(owner, DIRFLIP(owner.dir))
 
+	var/turf/target
+	while(possible_turfs.len) //Using while() instead of for() to ensure target turf is randomised
+		target = pick(possible_turfs)
+		if(!target.is_blocked_turf())
+			break
+		possible_turfs -= target
+		target = null
+	if(target)
+		var/time_to_hit = min(get_dist(owner, target), dodge_range) * movement_delay
+		var/datum/move_loop/new_loop = SSmove_manager.home_onto(owner, target, delay = movement_delay, timeout = time_to_hit, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
+		if(!new_loop)
+			return
+		block_movement = TRUE
+		owner.set_dir_on_move = FALSE
+		RegisterSignal(owner, COMSIG_MOVABLE_PRE_MOVE, .proc/on_move)
+		RegisterSignal(new_loop, COMSIG_MOVELOOP_PREPROCESS_CHECK, .proc/pre_move)
+		RegisterSignal(new_loop, COMSIG_MOVELOOP_POSTPROCESS, .proc/post_move)
+		RegisterSignal(new_loop, COMSIG_PARENT_QDELETING, .proc/RemoveMovementBlock)
+		owner.visible_message(span_danger("[owner] nimbly dodges to the side!"))
+		//Randomly selected sound
+		var/sound_type = pickweight(list(SOUND_SPEECH = 6, SOUND_ATTACK  = 2, SOUND_PAIN = 1.5, SOUND_SHOUT = 1))
+		owner.play_species_audio(owner, sound_type, VOLUME_QUIET, 1, -1)
+	else
+		to_chat(owner, span_notice("Couldn't find valid dodge location!"))
 
-/datum/extension/dodge/proc/start()
-	started_at = world.time
+/datum/action/cooldown/necro/dodge/proc/on_move()
+	SIGNAL_HANDLER
+	if(block_movement)
+		return COMPONENT_MOVABLE_BLOCK_PRE_MOVE
 
-	if (!QDELETED(user))
+/datum/action/cooldown/necro/dodge/proc/RemoveMovementBlock()
+	SIGNAL_HANDLER
+	block_movement = FALSE
+	owner.set_dir_on_move = TRUE
+	UnregisterSignal(owner, COMSIG_MOVABLE_PRE_MOVE)
 
-		var/list/possible_turfs = trange(1, user)
-		possible_turfs -= get_turf(user)
-		possible_turfs -= get_step(user, user.dir)
-		possible_turfs -= get_step(user, GLOB.reverse_dir[user.dir])
+/datum/action/cooldown/necro/dodge/proc/pre_move()
+	SIGNAL_HANDLER
+	block_movement = FALSE
 
-		var/turf/target = clear_turf_in_list(possible_turfs, TRUE)
-		if (target)
-			animate_movement(user, target, 8, client_lag = 0.4)
-			user.visible_message(SPAN_DANGER("[user] nimbly dodges to the side!"))
-			//Randomly selected sound
-			var/sound_type = pickweight(list(SOUND_SPEECH = 6, SOUND_ATTACK  = 2, SOUND_PAIN = 1.5, SOUND_SHOUT = 1))
-			user.play_species_audio(user, sound_type, VOLUME_QUIET, 1, -1)
-	addtimer(CALLBACK(src, /datum/extension/dodge/proc/stop), duration)
-
-
-/datum/extension/dodge/proc/stop()
-	stopped_at = world.time
-	unregister_statmods()
-
-	addtimer(CALLBACK(src, /datum/extension/dodge/proc/finish_cooldown), cooldown)
-
-/datum/extension/dodge/proc/finish_cooldown()
-	remove_extension(holder, base_type)
-
-
-/datum/extension/dodge/proc/get_cooldown_time()
-	var/elapsed = world.time - stopped_at
-	return cooldown - elapsed
-
-
-
-
-
-/***********************
-	Safety Checks
-************************/
-//Access Proc
-/mob/living/proc/can_dodge(var/error_messages = TRUE)
-	if (incapacitated())
-		return FALSE
-
-	var/datum/extension/dodge/E = get_extension(src, /datum/extension/dodge)
-	if(istype(E))
-		if (error_messages)
-			if (E.stopped_at)
-				to_chat(src, SPAN_NOTICE("[E.name] is cooling down. You can use it again in [E.get_cooldown_time() /10] seconds"))
-			else
-				to_chat(src, SPAN_NOTICE("You're already dodging"))
-		return FALSE
-
-	return TRUE
+/datum/action/cooldown/necro/dodge/proc/post_move()
+	SIGNAL_HANDLER
+	block_movement = TRUE
