@@ -1,3 +1,6 @@
+//TODO:
+// - Add stun and damage in case you bump in something that isn't your target and you don't have destroy_objects = TRUE
+// - Add mob autotargeting
 /datum/action/cooldown/mob_cooldown/charge/necro
 	background_icon_state = "bg_demon"
 	shared_cooldown = "necro_charge"

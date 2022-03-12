@@ -6,13 +6,16 @@
 	var/dodge_range = 1
 	var/movement_delay = 1.25
 
-/datum/action/cooldown/necro/dodge/New(Target)
-	. = ..()
-
+/datum/action/cooldown/necro/dodge/New(Target, range, move_delay)
+	if(range)
+		dodge_range = range
+	if(movement_delay)
+		movement_delay = move_delay
+	.=..()
 
 /datum/action/cooldown/necro/dodge/Activate()
 	.=..()
-	var/list/possible_turfs = trange(dodge_range, owner)
+	var/list/possible_turfs = RANGE_TURFS(dodge_range, owner)
 	possible_turfs -= get_turf(owner)
 	possible_turfs -= get_step(owner, owner.dir)
 	possible_turfs -= get_step(owner, DIRFLIP(owner.dir))
@@ -30,7 +33,6 @@
 		if(!new_loop)
 			return
 		block_movement = TRUE
-		owner.set_dir_on_move = FALSE
 		RegisterSignal(owner, COMSIG_MOVABLE_PRE_MOVE, .proc/on_move)
 		RegisterSignal(new_loop, COMSIG_MOVELOOP_PREPROCESS_CHECK, .proc/pre_move)
 		RegisterSignal(new_loop, COMSIG_MOVELOOP_POSTPROCESS, .proc/post_move)
@@ -56,7 +58,9 @@
 /datum/action/cooldown/necro/dodge/proc/pre_move()
 	SIGNAL_HANDLER
 	block_movement = FALSE
+	owner.set_dir_on_move = FALSE
 
 /datum/action/cooldown/necro/dodge/proc/post_move()
 	SIGNAL_HANDLER
 	block_movement = TRUE
+	owner.set_dir_on_move = TRUE

@@ -6,9 +6,11 @@
 	pixel_y = -112
 	duration = 2 SECONDS
 
-/obj/effect/temp_visual/expanding_circle/Initialize(mapload, _duration, expansion_rate, _color = "#ffffff")
+/obj/effect/temp_visual/expanding_circle/Initialize(mapload, _duration, expansion_rate, _color)
 	if(_duration)
 		duration = _duration
+	if(_color)
+		color = _color
 	.=..()
 	transform = transform.Scale(0.01)//Start off tiny
 	var/matrix/matrix = new
