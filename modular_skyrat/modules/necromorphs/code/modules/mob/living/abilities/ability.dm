@@ -39,3 +39,4 @@
 	if(active)
 		active = FALSE
 		StartCooldown()
+		return TRUE
