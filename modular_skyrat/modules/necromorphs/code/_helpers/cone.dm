@@ -70,7 +70,7 @@
 
 //This hella complex proc gets a cone, but divided into several smaller cones. Returns a list of lists, each containing the tiles of the subcone
 //No overlapping is allowed, each subcone contains a unique list
-/proc/get_multistage_cone(var/turf/origin, var/vector2/direction, var/distance, var/angle, var/stages = 5, var/clock_direction = CLOCKWISE)
+/proc/get_multistage_cone(turf/origin, vector2/direction, distance, angle, stages = 5, clock_direction = ROTATION_CLOCKWISE)
 	var/subcone_angle = angle / stages
 	var/vector2/subcone_direction
 

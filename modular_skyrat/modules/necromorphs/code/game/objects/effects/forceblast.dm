@@ -1,7 +1,7 @@
 /obj/effect/temp_visual/forceblast
 	alpha = 255
 	icon_state = "cone_80"
-	icon = 'icons/effects/effects_256.dmi'
+	icon = 'modular_skyrat/modules/necromorphs/icons/effects/256x256.dmi'
 	pixel_x = -112
 	pixel_y = -112
 	var/max_length = 4

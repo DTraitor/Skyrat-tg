@@ -24,7 +24,6 @@
 	var/cached_passflags
 
 /datum/action/cooldown/necro/high_leap/New(Target, cooldown, windup_time, winddown_time, min_range, travel_speed)
-	var/mob/living/holder = Target
 	if(windup_time)
 		src.windup_time = windup_time
 	if(winddown_time)
@@ -95,25 +94,31 @@
 /datum/action/cooldown/necro/high_leap/proc/windup_animation()
 	var/matrix/M = matrix()
 	M = M.Scale(1, 0.8)	//Squish vertically
-	animate(owner, transform = M, time = windup_time, pixel_y = owner.pixel_y - 16, easing = QUAD_EASING, flags = ANIMATION_PARALLEL | ANIMATION_RELATIVE)
+	animate(owner, transform = M, time = windup_time * 0.667, pixel_y = -16, easing = QUAD_EASING, flags = ANIMATION_RELATIVE)
 	M = matrix()
-	animate(transform = M, pixel_y = owner.pixel_y+16, time = windup_time)
+	animate(owner, transform = M, pixel_y = 16, time = windup_time * 0.333, flags = ANIMATION_RELATIVE)
 
 /datum/action/cooldown/necro/high_leap/proc/launch_animation()
 	var/matrix/M = matrix()
 	M = M.Scale(1.5)
 	cached_alpha = owner.alpha
-	animate(owner, transform = M,  pixel_y = owner.pixel_y + 128, alpha = 0, time = launch_time, flags = ANIMATION_PARALLEL | ANIMATION_RELATIVE)
+	animate(owner, transform = M,  pixel_y = 128, alpha = -cached_alpha, time = launch_time, flags = ANIMATION_RELATIVE)
 
 /datum/action/cooldown/necro/high_leap/proc/land()
+	loop = null
 	land_animation()
 	sleep(land_time)
 
+	owner.density = cached_density
+	owner.pass_flags = cached_passflags
+
+	winddown()
 	//We play a sound!
-	var/sound_file = pick(list('sound/effects/impacts/hard_impact_1.ogg',
-	'sound/effects/impacts/hard_impact_2.ogg',
-	'sound/effects/impacts/low_impact_1.ogg',
-	'sound/effects/impacts/low_impact_2.ogg'))
+	var/sound_file = pick(list(
+	'modular_skyrat/modules/necromorphs/sound/effects/impacts/hard_impact_1.ogg',
+	'modular_skyrat/modules/necromorphs/sound/effects/impacts/hard_impact_2.ogg',
+	'modular_skyrat/modules/necromorphs/sound/effects/impacts/low_impact_1.ogg',
+	'modular_skyrat/modules/necromorphs/sound/effects/impacts/low_impact_2.ogg'))
 	playsound(owner, sound_file, VOLUME_MID, TRUE)
 
 	//The leap impact deals two burst of damage.
@@ -147,24 +152,19 @@
 
 	release_vector(direction)
 
-	owner.density = cached_density
-	owner.pass_flags = cached_passflags
-
-	winddown()
-
 /datum/action/cooldown/necro/high_leap/proc/land_animation()
 	var/matrix/M = matrix()
-	animate(owner, transform = M, alpha = cached_alpha, time = land_time)
+	animate(owner, transform = M, pixel_y = -128, alpha = cached_alpha, time = land_time, flags = ANIMATION_RELATIVE)
 
 /datum/action/cooldown/necro/high_leap/proc/winddown()
 	winddown_animation()
-	sleep(winddown_time)
-	UnregisterSignal(owner, list(COMSIG_MOVABLE_PRE_MOVE))
+	sleep(winddown_time*0.333)
+	UnregisterSignal(owner, list(COMSIG_MOVABLE_PRE_MOVE, COMSIG_MOVABLE_BUMP))
 	StartCooldown()
 
 /datum/action/cooldown/necro/high_leap/proc/winddown_animation()
 	var/matrix/M = matrix()
 	M = M.Scale(1, 0.8)	//Squish vertically
-	animate(owner, transform = M, time = winddown_time, pixel_y = owner.pixel_y - 128 - 16, easing = QUAD_EASING, flags = ANIMATION_PARALLEL|ANIMATION_RELATIVE)
+	animate(owner, transform = M, pixel_y = -16, time = winddown_time * 0.333, easing = QUAD_EASING, flags = ANIMATION_RELATIVE)
 	M = matrix()
-	animate(transform = M, pixel_y = owner.pixel_y + 16, time = winddown_time)
+	animate(owner, transform = M, pixel_y = 16, time = winddown_time * 0.667, flags = ANIMATION_RELATIVE)

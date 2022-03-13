@@ -5,24 +5,19 @@
 #define TRAIT_NECRO_TAUNT "necro_taunt"
 /datum/action/cooldown/necro/active/taunt
 	name = "Taunt"
-	var/time_without_enemy = 0
-	var/max_time_without_enemy = 6 SECONDS
+	duration_time = 6 SECONDS
 	var/list/necromorphs_taunt = list()
-
-/datum/action/cooldown/necro/active/taunt/Destroy()
-	CooldownEnd()
-	.=..()
 
 /datum/action/cooldown/necro/active/taunt/Activate(atom/target)
 	var/mob/living/holder = owner
 	if(holder.body_position != LYING_DOWN)
 		.=..()
-		holder.add_filter("hunter_taunt", 1, list("type" = "outline", "color" = "#ff00007e", "size" = 1))
+		holder.add_filter("hunter_taunt", 1, list("type" = "outline", "color" = "#ff0000", "alpha" = 128,"size" = 1))
 		RegisterSignal(holder, COMSIG_LIVING_UPDATED_RESTING, .proc/on_rest)
 		ADD_TRAIT(holder, TRAIT_NECRO_TAUNT_SOURCE, "taunt_ability")
 		//Add buffs to owner here
 	else
-		holder.balloon_alert(holder, "you should stand up to taunt")
+		holder.balloon_alert(holder, "You should stand up to taunt")
 
 /datum/action/cooldown/necro/active/taunt/proc/on_rest(datum/datum, resting)
 	if(resting)
@@ -53,13 +48,8 @@
 			else
 				if(mob.is_necromorph())
 					necromorphs += mob
-		if(!enemies_in_view)
-			time_without_enemy += 0.2 SECONDS * delta_time
-			if(time_without_enemy >= max_time_without_enemy)
-				owner.balloon_alert(owner, span_danger("There are no more enemies in sight, taunt has ended"))
-				CooldownEnd()
-		else
-			time_without_enemy = 0
+		if(enemies_in_view)
+			next_use_time = world.time + duration_time
 			for(var/mob/mob as anything in necromorphs_taunt)
 				if(!(mob in necromorphs))
 					necromorphs -= mob

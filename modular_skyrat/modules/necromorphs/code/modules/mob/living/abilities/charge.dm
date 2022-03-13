@@ -6,10 +6,12 @@
 	shared_cooldown = "necro_charge"
 	var/shake_power = 8
 
-/datum/action/cooldown/mob_cooldown/charge/necro/New(Target, cooldown, delay, past, distance, speed, damage, destroy, shake)
-	.=..()
+/datum/action/cooldown/mob_cooldown/charge/necro/New(Target, delay, past, distance, speed, damage, destroy, shake, cooldown)
 	if(!isnull(shake))
 		shake_power = shake
+	if(cooldown)
+		cooldown_time = cooldown
+	.=..()
 
 /datum/action/cooldown/mob_cooldown/charge/necro/do_charge_indicator(atom/charger, atom/charge_target)
 	var/mob/living/carbon/necromorph = charger

@@ -24,7 +24,7 @@
 
 /datum/action/cooldown/necro/active/gallop/CooldownEnd()
 	.=..()
-	if(active)
+	if(.)
 		owner.remove_movespeed_modifier(modifier)
 		UnregisterSignal(owner, list(COMSIG_ATOM_BULLET_ACT, COMSIG_MOVABLE_BUMP, COMSIG_MOVABLE_MOVED))
 

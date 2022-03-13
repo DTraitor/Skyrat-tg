@@ -139,7 +139,12 @@
 		/datum/action/cooldown/mob_cooldown/charge/necro = list(cooldown = 20 SECONDS, delay = 1 SECONDS, past = 1, distance = 20, speed = 2, damage = 15, destroy = FALSE, shake = 30),
 		/datum/action/cooldown/necro/shout = list(),
 		/datum/action/cooldown/necro/shout/long = list(),
-		/datum/action/cooldown/necro/dodge = list()
+		/datum/action/cooldown/necro/dodge = list(),
+		/datum/action/cooldown/necro/active/gallop = list(),
+		/datum/action/cooldown/necro/high_leap = list(),
+		/datum/action/cooldown/necro/active/taunt = list(),
+		/datum/element/twitch = list(),
+		/datum/action/cooldown/mob_cooldown/fire_breath = list()
 	)
 
 	/*

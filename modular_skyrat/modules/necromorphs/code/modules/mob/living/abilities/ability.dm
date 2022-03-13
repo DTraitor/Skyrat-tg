@@ -31,6 +31,11 @@
 		duration_time = duration
 	.=..()
 
+/datum/action/cooldown/necro/active/Destroy()
+	CooldownEnd()
+	STOP_PROCESSING(SSfastprocess, src)
+	.=..()
+
 /datum/action/cooldown/necro/active/Activate(atom/target)
 	active = TRUE
 	StartCooldown(duration_time)
