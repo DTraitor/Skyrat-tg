@@ -34,6 +34,11 @@
 		src.travel_speed = travel_speed
 	.=..()
 
+/datum/action/cooldown/necro/high_leap/Destroy()
+	if(!QDELETED(loop))
+		QDEL_NULL(loop)
+	.=..()
+
 /datum/action/cooldown/necro/high_leap/Activate(atom/target)
 	var/distance = get_dist(owner, target)
 	if(distance < min_range)
@@ -47,7 +52,6 @@
 	RegisterSignal(owner, COMSIG_MOVABLE_PRE_MOVE, .proc/owner_move)
 
 	windup_animation()
-	sleep(windup_time)
 
 	cached_density = owner.density
 	cached_passflags = owner.pass_flags
@@ -94,15 +98,17 @@
 /datum/action/cooldown/necro/high_leap/proc/windup_animation()
 	var/matrix/M = matrix()
 	M = M.Scale(1, 0.8)	//Squish vertically
-	animate(owner, transform = M, time = windup_time * 0.667, pixel_y = -16, easing = QUAD_EASING, flags = ANIMATION_RELATIVE)
+	animate(owner, transform = M, time = windup_time * 0.667, pixel_y = owner.pixel_y-16, easing = QUAD_EASING)
+	sleep(windup_time*0.667)
 	M = matrix()
-	animate(owner, transform = M, pixel_y = 16, time = windup_time * 0.333, flags = ANIMATION_RELATIVE)
+	animate(owner, transform = M, pixel_y = owner.pixel_y+16, time = windup_time * 0.333)
+	sleep(windup_time*0.333)
 
 /datum/action/cooldown/necro/high_leap/proc/launch_animation()
 	var/matrix/M = matrix()
 	M = M.Scale(1.5)
 	cached_alpha = owner.alpha
-	animate(owner, transform = M,  pixel_y = 128, alpha = -cached_alpha, time = launch_time, flags = ANIMATION_RELATIVE)
+	animate(owner, transform = M,  pixel_y = owner.pixel_y+128, alpha = 0, time = launch_time)
 
 /datum/action/cooldown/necro/high_leap/proc/land()
 	loop = null
@@ -158,13 +164,13 @@
 
 /datum/action/cooldown/necro/high_leap/proc/winddown()
 	winddown_animation()
-	sleep(winddown_time*0.333)
 	UnregisterSignal(owner, list(COMSIG_MOVABLE_PRE_MOVE, COMSIG_MOVABLE_BUMP))
 	StartCooldown()
 
 /datum/action/cooldown/necro/high_leap/proc/winddown_animation()
 	var/matrix/M = matrix()
 	M = M.Scale(1, 0.8)	//Squish vertically
-	animate(owner, transform = M, pixel_y = -16, time = winddown_time * 0.333, easing = QUAD_EASING, flags = ANIMATION_RELATIVE)
+	animate(owner, transform = M, pixel_y = owner.pixel_y-16, time = winddown_time * 0.333, easing = QUAD_EASING)
+	sleep(winddown_time * 0.333)
 	M = matrix()
-	animate(owner, transform = M, pixel_y = 16, time = winddown_time * 0.667, flags = ANIMATION_RELATIVE)
+	animate(owner, transform = M, pixel_y = owner.pixel_y+16, time = winddown_time * 0.667)
